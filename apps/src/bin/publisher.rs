@@ -55,8 +55,12 @@ struct Args {
     contract: Address,
 
     /// The input to provide to the guest binary
-    #[clap(short, long)]
+    #[clap(long)]
     input: U256,
+
+    /// The second input to provide to the guest binary
+    #[clap(long)]
+    input_2: U256,
 }
 
 fn main() -> Result<()> {
@@ -73,9 +77,9 @@ fn main() -> Result<()> {
 
     // ABI encode input: Before sending the proof request to the Bonsai proving service,
     // the input number is ABI-encoded to match the format expected by the guest code running in the zkVM.
-    let input = args.input.abi_encode();
+    let inputs = (args.input, args.input_2).abi_encode();
 
-    let env = ExecutorEnv::builder().write_slice(&input).build()?;
+    let env = ExecutorEnv::builder().write_slice(&inputs).build()?;
 
     let receipt = default_prover()
         .prove_with_ctx(
@@ -95,13 +99,14 @@ fn main() -> Result<()> {
     // Decode Journal: Upon receiving the proof, the application decodes the journal to extract
     // the verified number. This ensures that the number being submitted to the blockchain matches
     // the number that was verified off-chain.
-    let x = U256::abi_decode(&journal, true).context("decoding journal data")?;
+    // let x = U256::abi_decode(&journal, true).context("decoding journal data")?;
+    let (x, y): (U256, U256) = <(U256,U256)>::abi_decode(&journal, true).context("decoding journal data")?;
 
     // Construct function call: Using the IEvenNumber interface, the application constructs
     // the ABI-encoded function call for the set function of the EvenNumber contract.
     // This call includes the verified number, the post-state digest, and the seal (proof).
     let contract = IEvenNumber::new(args.contract, provider);
-    let call_builder = contract.set(x, seal.into());
+    let call_builder = contract.set(x, y, seal.into());
 
     // Initialize the async runtime environment to handle the transaction sending.
     let runtime = tokio::runtime::Runtime::new()?;

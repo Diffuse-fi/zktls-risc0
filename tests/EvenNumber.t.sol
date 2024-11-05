@@ -29,22 +29,35 @@ contract EvenNumberTest is RiscZeroCheats, Test {
     function setUp() public {
         IRiscZeroVerifier verifier = deployRiscZeroVerifier();
         evenNumber = new EvenNumber(verifier);
-        assertEq(evenNumber.get(), 0);
+        (uint256 x, uint256 y) = evenNumber.get();
+        assertEq(x, 0);
+        assertEq(y, 0);
     }
 
     function test_SetEven() public {
-        uint256 number = 12345678;
-        (bytes memory journal, bytes memory seal) = prove(Elf.IS_EVEN_PATH, abi.encode(number));
+        uint256 number = 1234;
+        uint256 number_2 = 5678;
+        (bytes memory journal, bytes memory seal) = prove(Elf.IS_EVEN_PATH, abi.encode(number, number_2));
 
-        evenNumber.set(abi.decode(journal, (uint256)), seal);
-        assertEq(evenNumber.get(), number);
+
+        (uint256 decoded_x, uint256 decoded_y) = abi.decode(journal, (uint256, uint256));
+        evenNumber.set(decoded_x, decoded_y, seal);
+
+        (uint256 x, uint256 y) = evenNumber.get();
+        assertEq(x, number);
+        assertEq(y, number_2);
     }
 
     function test_SetZero() public {
         uint256 number = 0;
-        (bytes memory journal, bytes memory seal) = prove(Elf.IS_EVEN_PATH, abi.encode(number));
+        uint256 number_2 = 0;
+        (bytes memory journal, bytes memory seal) = prove(Elf.IS_EVEN_PATH, abi.encode(number, number_2));
 
-        evenNumber.set(abi.decode(journal, (uint256)), seal);
-        assertEq(evenNumber.get(), number);
+        (uint256 decoded_x, uint256 decoded_y) = abi.decode(journal, (uint256, uint256));
+        evenNumber.set(decoded_x, decoded_y, seal);
+
+        (uint256 x, uint256 y) = evenNumber.get();
+        assertEq(x, number);
+        assertEq(y, number_2);
     }
 }

@@ -24,26 +24,33 @@ mod tests {
     #[test]
     fn proves_even_number() {
         let even_number = U256::from(1304);
+        let even_number_2 = U256::from(2608);
+
+        let encoded_numbers = (even_number, even_number_2).abi_encode();
 
         let env = ExecutorEnv::builder()
-            .write_slice(&even_number.abi_encode())
+            .write_slice(&encoded_numbers)
             .build()
             .unwrap();
 
         // NOTE: Use the executor to run tests without proving.
         let session_info = default_executor().execute(env, super::IS_EVEN_ELF).unwrap();
 
-        let x = U256::abi_decode(&session_info.journal.bytes, true).unwrap();
+        let (x, y): (U256, U256) = <(U256,U256)>::abi_decode(&session_info.journal.bytes, true).unwrap();
         assert_eq!(x, even_number);
+        assert_eq!(y, even_number_2);
     }
 
     #[test]
     #[should_panic(expected = "number is not even")]
     fn rejects_odd_number() {
         let odd_number = U256::from(75);
+        let odd_number_2 = U256::from(75);
+
+        let encoded_numbers = (odd_number, odd_number_2).abi_encode();
 
         let env = ExecutorEnv::builder()
-            .write_slice(&odd_number.abi_encode())
+            .write_slice(&encoded_numbers)
             .build()
             .unwrap();
 

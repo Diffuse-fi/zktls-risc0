@@ -23,7 +23,7 @@ cargo run --bin publisher
 ```text
 $ cargo run --bin publisher -- --help
 
-Usage: publisher --chain-id <CHAIN_ID> --eth-wallet-private-key <ETH_WALLET_PRIVATE_KEY> --rpc-url <RPC_URL> --contract <CONTRACT> --input <INPUT>
+Usage: publisher --chain-id <CHAIN_ID> --eth-wallet-private-key <ETH_WALLET_PRIVATE_KEY> --rpc-url <RPC_URL> --contract <CONTRACT> --input <INPUT> --input-2 <INPUT_2>
 
 Options:
       --chain-id <CHAIN_ID>
@@ -34,8 +34,10 @@ Options:
           Ethereum Node endpoint
       --contract <CONTRACT>
           Application's contract address on Ethereum
-  -i, --input <INPUT>
+      --input <INPUT>
           The input to provide to the guest binary
+      --input-2 <INPUT_2>
+          The second input to provide to the guest binary
   -h, --help
           Print help
   -V, --version

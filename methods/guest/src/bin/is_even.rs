@@ -23,13 +23,14 @@ fn main() {
     let mut input_bytes = Vec::<u8>::new();
     env::stdin().read_to_end(&mut input_bytes).unwrap();
     // Decode and parse the input
-    let number = <U256>::abi_decode(&input_bytes, true).unwrap();
+    let (number, number_2): (U256, U256) = <(U256, U256)>::abi_decode(&input_bytes, true).unwrap();
 
     // Run the computation.
-    // In this case, asserting that the provided number is even.
-    assert!(!number.bit(0), "number is not even");
+    // In this case, asserting that all provided numbers are even.
+    assert!(!number.bit(0) && !number_2.bit(0), "at least one number is not even");
 
     // Commit the journal that will be received by the application contract.
     // Journal is encoded using Solidity ABI for easy decoding in the app contract.
-    env::commit_slice(number.abi_encode().as_slice());
+    let encoded_journal = (number, number_2).abi_encode();
+    env::commit_slice(&encoded_journal.as_slice());
 }

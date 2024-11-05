@@ -22,8 +22,8 @@ pragma solidity ^0.8.20;
 ///      or difficult to implement function to a RISC Zero guest running on the zkVM.
 interface IEvenNumber {
     /// @notice Set the even number stored on the contract. Requires a RISC Zero proof that the number is even.
-    function set(uint256 x, bytes calldata seal) external;
+    function set(uint256 x, uint256 y, bytes calldata seal) external;
 
     /// @notice Returns the number stored.
-    function get() external view returns (uint256);
+    function get() external view returns (uint256, uint256);
 }
