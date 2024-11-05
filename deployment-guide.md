@@ -70,11 +70,12 @@ You can deploy your contracts and run an end-to-end test or demo as follows:
 
 ### Interact with your local deployment
 
-1. Query the state:
+1. Query the state at timestamp = 1:
 
     ```bash
-    cast call --rpc-url http://localhost:8545 ${EVEN_NUMBER_ADDRESS:?} 'get()(uint256, uint256)'
+    cast call --rpc-url http://localhost:8545 ${EVEN_NUMBER_ADDRESS:?} 'get(uint256)(uint256, uint256)' '1'
     ```
+you will receive responce 0 0, there is no data at timestamp 1.
 
 2. Publish a new state
 
@@ -83,15 +84,15 @@ You can deploy your contracts and run an end-to-end test or demo as follows:
         --chain-id=31337 \
         --rpc-url=http://localhost:8545 \
         --contract=${EVEN_NUMBER_ADDRESS:?} \
-        --input=1234 \
-        --input-2=5678
+        --json-path="test_inputs/01.json"
     ```
 
 3. Query the state again to see the change:
 
     ```bash
-    cast call --rpc-url http://localhost:8545 ${EVEN_NUMBER_ADDRESS:?} 'get()(uint256, uint256)'
+    cast call --rpc-url http://localhost:8545 ${EVEN_NUMBER_ADDRESS:?} 'get(uint256)(uint256, uint256)' '1'
     ```
+now you will receive 10 100 responce. Also try to publish data from test_inputs/02.json and look at prices with timestamp=2.
 
 ## Deploy your project on Sepolia testnet
 
