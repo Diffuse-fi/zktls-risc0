@@ -73,7 +73,7 @@ You can deploy your contracts and run an end-to-end test or demo as follows:
 1. Query the state:
 
     ```bash
-    cast call --rpc-url http://localhost:8545 ${EVEN_NUMBER_ADDRESS:?} 'get()(uint256)'
+    cast call --rpc-url http://localhost:8545 ${EVEN_NUMBER_ADDRESS:?} 'get()(uint256, uint256)'
     ```
 
 2. Publish a new state
@@ -90,7 +90,7 @@ You can deploy your contracts and run an end-to-end test or demo as follows:
 3. Query the state again to see the change:
 
     ```bash
-    cast call --rpc-url http://localhost:8545 ${EVEN_NUMBER_ADDRESS:?} 'get()(uint256)'
+    cast call --rpc-url http://localhost:8545 ${EVEN_NUMBER_ADDRESS:?} 'get()(uint256, uint256)'
     ```
 
 ## Deploy your project on Sepolia testnet
@@ -149,7 +149,7 @@ You can deploy your contracts on the `Sepolia` testnet and run an end-to-end tes
 1. Query the state:
 
     ```bash
-    cast call --rpc-url https://eth-sepolia.g.alchemy.com/v2/${ALCHEMY_API_KEY:?} ${EVEN_NUMBER_ADDRESS:?} 'get()(uint256)'
+    cast call --rpc-url https://eth-sepolia.g.alchemy.com/v2/${ALCHEMY_API_KEY:?} ${EVEN_NUMBER_ADDRESS:?} 'get()(uint256, uint256)'
     ```
 
 2. Publish a new state
@@ -166,7 +166,7 @@ You can deploy your contracts on the `Sepolia` testnet and run an end-to-end tes
 3. Query the state again to see the change:
 
     ```bash
-    cast call --rpc-url https://eth-sepolia.g.alchemy.com/v2/${ALCHEMY_API_KEY:?} ${EVEN_NUMBER_ADDRESS:?} 'get()(uint256)'
+    cast call --rpc-url https://eth-sepolia.g.alchemy.com/v2/${ALCHEMY_API_KEY:?} ${EVEN_NUMBER_ADDRESS:?} 'get()(uint256, uint256)'
     ```
 
 ## Deploy your project on Ethereum mainnet
@@ -228,7 +228,7 @@ You can deploy your contract on Ethereum Mainnet as follows:
 1. Query the state:
 
     ```bash
-    cast call --rpc-url https://eth-mainnet.g.alchemy.com/v2/${ALCHEMY_API_KEY:?} ${EVEN_NUMBER_ADDRESS:?} 'get()(uint256)'
+    cast call --rpc-url https://eth-mainnet.g.alchemy.com/v2/${ALCHEMY_API_KEY:?} ${EVEN_NUMBER_ADDRESS:?} 'get()(uint256, uint256)'
     ```
 
 2. Publish a new state
@@ -248,7 +248,7 @@ You can deploy your contract on Ethereum Mainnet as follows:
 3. Query the state again to see the change:
 
     ```bash
-    cast call --rpc-url https://eth-mainnet.g.alchemy.com/v2/${ALCHEMY_API_KEY:?} ${EVEN_NUMBER_ADDRESS:?} 'get()(uint256)'
+    cast call --rpc-url https://eth-mainnet.g.alchemy.com/v2/${ALCHEMY_API_KEY:?} ${EVEN_NUMBER_ADDRESS:?} 'get()(uint256, uint256)'
     ```
 
 [section-mainnet]: #deploy-your-project-on-ethereum-mainnet
