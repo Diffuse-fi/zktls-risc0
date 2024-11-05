@@ -16,3 +16,8 @@ risc0-zkp = { workspace = true }
 alloy-primitives = { workspace = true }
 alloy-sol-types = { workspace = true }
 risc0-zkvm = { workspace = true, features = ["client"] }
+
+[dependencies]
+serde = { version = "1.0", features = ["derive"] }
+serde_derive = "1.0"
+shared_between_host_and_guest = { path = "./shared_between_host_and_guest" }

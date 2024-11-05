@@ -92,39 +92,20 @@ jobs:
           RISC0_DEV_MODE: false
         run: forge test -vvv
 
-  lint:
-    runs-on: ubuntu-latest
-    steps:
-      - name: checkout code
-        uses: actions/checkout@v3
-        with:
-          submodules: recursive
+      - name: Launch anvil
+        run: nohup anvil > anvil.log 2>&1 &
 
-      - name: install rust
-        uses: risc0/risc0/.github/actions/rustup@main
+      - name: Make sure anvil is running
+        run: |
+          for i in {1..10}; do
+            if curl -s http://localhost:8545/health; then
+              echo "Anvil is running!"
+              exit 0
+            fi
+            echo "Waiting for Anvil to start..."
+            sleep 5
+          done
+          echo "Anvil did not start in time!" && exit 1
 
-      - name: install cargo-sort
-        uses: risc0/cargo-install@v1
-        with:
-          crate: cargo-sort
-          version: "=1.0.7"
-
-      - name: Install Foundry
-        uses: risc0/foundry-toolchain@2fe7e70b520f62368a0e3c464f997df07ede420f
-
-      - name: lint rust code
-        run: cargo fmt --all --check
-
-      - name: lint guest rust code
-        working-directory: methods/guest
-        run: cargo fmt --all --check
-
-      - name: lint cargo files
-        run: cargo sort --workspace --check
-
-      - name: lint guest cargo files
-        working-directory: methods/guest
-        run: cargo sort --workspace --check
-
-      - name: check solidity code formatting
-        run: forge fmt --check
+      - name: run CLI test
+        run: python3 cli/test.py

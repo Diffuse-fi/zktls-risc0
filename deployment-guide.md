@@ -10,7 +10,126 @@ You can either:
 - [Deploy to a testnet][section-testnet]
 - [Deploy to Ethereum Mainnet][section-mainnet]
 
-## Deploy your project on a local network
+## Deploy your project on a local network using our CLI
+
+You can deploy your contracts and run an end-to-end test or demo as follows:
+
+1. Start a local fork of testnet with `anvil` by running:
+
+    ```bash
+    anvil --fork-url https://eth-sepolia.g.alchemy.com/v2/${ALCHEMY_API_KEY:?}
+    ```
+
+    This will create local copy of sepolia testnet (not a full copy, will only request needed data, not a 12 TB full archive node). Very convinient since we are going to use automata quote verification ecosystem that consists of 10 contracts. Would be huge pain to deploy them every time for local testing. And also it does not work, I tried, something is wrong with their instructions.
+
+    Once anvil is started, keep it running in the terminal, and switch to a new terminal.
+
+2. Set your environment variables (remember, you need other key for testnet):
+    ```bash
+    # Anvil sets up a number of default wallets, and this private key is one of them.
+    export ETH_WALLET_PRIVATE_KEY=0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
+    ```
+
+3. Build your project:
+
+    ```bash
+    cargo build
+    ```
+    run tests:
+
+    ```bash
+    cargo test
+    forge test
+    python3 cli/test.py
+    ```
+
+4. Deploy data feeder contract by running:
+
+    ```bash
+    python3 cli/deploy_feeder.py -n local
+    ```
+    this contract creates storage contracts on deployment and writes proven data into them
+
+5. Parse data from binance and create proof:
+
+    ```bash
+    python3 cli/parse_and_prove.py --binance
+    ```
+    also you can use test quote and prove data on machine without sgx
+    ```bash
+    python3 cli/parse_and_prove.py --test-data
+    ```
+
+5. Deploy data to chain:
+
+    ```bash
+    python3 cli/feed_feeder.py -n local
+    ```
+
+6. Now You can request data from data feed storage:
+
+    ```bash
+    python3 cli/request_storage.py --network local --pair ETHBTC --method latestRoundData
+    ```
+    or
+
+    ```bash
+    python3 cli/request_storage.py --network local --pair BTCUSDT --method latestRoundData
+    ```
+
+7. Repeat parsing and proving
+
+    ```bash
+    python3 cli/parse_and_prove.py --binance
+    python3 cli/feed_feeder.py -n local
+    ```
+
+8. Price onchain has changed:
+
+    ```bash
+    python3 cli/request_storage.py -n local -p BTCUSDT --m latestRoundData
+    ```
+
+## Interact with sepolia contract using our CLI
+
+1. Set your environment variables (NOT the one from anvil! You need to change this viriable if you worked locally!):
+    ```bash
+    export ALCHEMY_API_KEY="YOUR_ALCHEMY_API_KEY" # the API_KEY provided with an alchemy account
+    export ETH_WALLET_PRIVATE_KEY="YOUR_WALLET_PRIVATE_KEY" # the private hex-encoded key of your Sepolia testnet wallet
+    ```
+
+2. Build your project:
+
+    ```bash
+    cargo build
+    ```
+3. No instruction for deployment because contracts are already deployed
+
+5. Parse data from binance and prove it:
+
+    ```bash
+    python3 cli/parse_and_prove.py --binance
+    ```
+
+5. publish it to sepolia:
+
+    ```bash
+    python3 cli/feed_feeder.py -n sepolia
+    ```
+    once proven, data can be reused, you can publish the same data on neon
+    ```bash
+    python3 cli/feed_feeder.py -n neon_devnet
+    ```
+
+6. Now You can request data from data feed storage:
+
+    ```bash
+    python3 cli/request_storage.py --network sepolia --pair BTCUSDT --method latestRoundData
+    ```
+    list of avaliable pairs is stored in cli/addresses/sepolia
+
+
+## Deploy your project on a local network manually (I don't want to update these docs)
 
 You can deploy your contracts and run an end-to-end test or demo as follows:
 
@@ -52,45 +171,67 @@ You can deploy your contracts and run an end-to-end test or demo as follows:
     == Logs ==
     You are deploying on ChainID 31337
     Deployed RiscZeroGroth16Verifier to 0x5FbDB2315678afecb367f032d93F642f64180aa3
-    Deployed EvenNumber to 0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512
+    Deployed DataFeedFeeder to 0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512
     ...
     ```
 
-    Save the `EvenNumber` contract address to an env variable:
+    Save the `DataFeedFeeder` contract address to an env variable:
 
     ```bash
-    export EVEN_NUMBER_ADDRESS=#COPY EVEN NUMBER ADDRESS FROM DEPLOY LOGS
+    export DATA_FEEDER_ADDRESS=#COPY DATA FEEDER ADDRESS FROM DEPLOY LOGS
     ```
 
     > You can also use the following command to set the contract address if you have [`jq`][jq] installed:
     >
     > ```bash
-    > export EVEN_NUMBER_ADDRESS=$(jq -re '.transactions[] | select(.contractName == "EvenNumber") | .contractAddress' ./broadcast/Deploy.s.sol/31337/run-latest.json)
+    > export DATA_FEEDER_ADDRESS=$(jq -re '.transactions[] | select(.contractName == "DataFeedFeeder") | .contractAddress' ./broadcast/Deploy.s.sol/31337/run-latest.json)
     > ```
 
 ### Interact with your local deployment
 
-1. Query the state:
+1. Query the dataFeedStorage address of the ETHBTC pair
 
     ```bash
-    cast call --rpc-url http://localhost:8545 ${EVEN_NUMBER_ADDRESS:?} 'get()(uint256)'
+    cast call --rpc-url http://localhost:8545 ${DATA_FEEDER_ADDRESS:?} 'getPairStorageAddress(string)(address)' 'ETHBTC'
+    ```
+    Save the ETHBTC dataFeedStorage address to an env variable
+    ```bash
+    export ETHBTC_FEED_STORAGE_ADDRESS=#COPY ADDRESS FROM QUERY RESPONSE
     ```
 
-2. Publish a new state
+2. Publish price data
+
+    ```bash
+    cargo run --bin publisher -- \
+        --chain-id=31337 \
+        --rpc-url= \
+        --contract=${DATA_FEEDER_ADDRESS:?} \
+        --json-path="test_inputs/01.json"
+    ```
+
+3. Query the state:
+
+    ```bash
+    cast call --rpc-url http://localhost:8545 ${ETHBTC_FEED_STORAGE_ADDRESS:?} 'latestRoundData()(uint80, uint256, uint256, uint256, uint80)'
+    ```
+    You will receive 5 numbers: last round Id, answer (price), startedAt(timestamp), updatedAt(same timestamp), answeredInRound (current round Id)
+
+4. Publish next round of price data
 
     ```bash
     cargo run --bin publisher -- \
         --chain-id=31337 \
         --rpc-url=http://localhost:8545 \
-        --contract=${EVEN_NUMBER_ADDRESS:?} \
-        --input=12345678
+        --contract=${DATA_FEEDER_ADDRESS:?} \
+        --json-path="test_inputs/02.json"
     ```
-
-3. Query the state again to see the change:
+5. Query the state:
 
     ```bash
-    cast call --rpc-url http://localhost:8545 ${EVEN_NUMBER_ADDRESS:?} 'get()(uint256)'
+    cast call --rpc-url http://localhost:8545 ${ETHBTC_FEED_STORAGE_ADDRESS:?} 'latestRoundData()(uint80, uint256, uint256, uint256, uint80)'
     ```
+    Now the numbers will be changed to those specified in test_inputs/02.json
+
 
 ## Deploy your project on Sepolia testnet
 
@@ -127,20 +268,20 @@ You can deploy your contracts on the `Sepolia` testnet and run an end-to-end tes
     You are deploying on ChainID 11155111
     Deploying using config profile: sepolia
     Using IRiscZeroVerifier contract deployed at 0x925d8331ddc0a1F0d96E68CF073DFE1d92b69187
-    Deployed EvenNumber to 0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512
+    Deployed DataFeedFeeder to 0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512
     ...
     ```
 
-    Save the `EvenNumber` contract address to an env variable:
+    Save the `DataFeedFeeder` contract address to an env variable:
 
     ```bash
-    export EVEN_NUMBER_ADDRESS=#COPY EVEN NUMBER ADDRESS FROM DEPLOY LOGS
+    export DATA_FEEDER_ADDRESS=#COPY DATA FEEDER ADDRESS FROM DEPLOY LOGS
     ```
 
     > You can also use the following command to set the contract address if you have [`jq`][jq] installed:
     >
     > ```bash
-    > export EVEN_NUMBER_ADDRESS=$(jq -re '.transactions[] | select(.contractName == "EvenNumber") | .contractAddress' ./broadcast/Deploy.s.sol/11155111/run-latest.json)
+    > export DATA_FEEDER_ADDRESS=$(jq -re '.transactions[] | select(.contractName == "DataFeedFeeder") | .contractAddress' ./broadcast/Deploy.s.sol/11155111/run-latest.json)
     > ```
 
 ### Interact with your Sepolia testnet deployment
@@ -148,7 +289,7 @@ You can deploy your contracts on the `Sepolia` testnet and run an end-to-end tes
 1. Query the state:
 
     ```bash
-    cast call --rpc-url https://eth-sepolia.g.alchemy.com/v2/${ALCHEMY_API_KEY:?} ${EVEN_NUMBER_ADDRESS:?} 'get()(uint256)'
+    cast call --rpc-url https://eth-sepolia.g.alchemy.com/v2/${ALCHEMY_API_KEY:?} ${DATA_FEEDER_ADDRESS:?} 'get()(uint256, uint256)'
     ```
 
 2. Publish a new state
@@ -157,14 +298,15 @@ You can deploy your contracts on the `Sepolia` testnet and run an end-to-end tes
     cargo run --bin publisher -- \
         --chain-id=11155111 \
         --rpc-url=https://eth-sepolia.g.alchemy.com/v2/${ALCHEMY_API_KEY:?} \
-        --contract=${EVEN_NUMBER_ADDRESS:?} \
-        --input=12345678
+        --contract=${DATA_FEEDER_ADDRESS:?} \
+        --input=1234 \
+        --input=2=5678
     ```
 
 3. Query the state again to see the change:
 
     ```bash
-    cast call --rpc-url https://eth-sepolia.g.alchemy.com/v2/${ALCHEMY_API_KEY:?} ${EVEN_NUMBER_ADDRESS:?} 'get()(uint256)'
+    cast call --rpc-url https://eth-sepolia.g.alchemy.com/v2/${ALCHEMY_API_KEY:?} ${DATA_FEEDER_ADDRESS:?} 'get()(uint256, uint256)'
     ```
 
 ## Deploy your project on Ethereum mainnet
@@ -205,20 +347,20 @@ You can deploy your contract on Ethereum Mainnet as follows:
     You are deploying on ChainID 1
     Deploying using config profile: mainnet
     Using IRiscZeroVerifier contract deployed at 0x8EaB2D97Dfce405A1692a21b3ff3A172d593D319
-    Deployed EvenNumber to 0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512
+    Deployed DataFeedFeeder to 0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512
     ...
     ```
 
-    Save the `EvenNumber` contract address to an env variable:
+    Save the `DataFeedFeeder` contract address to an env variable:
 
     ```bash
-    export EVEN_NUMBER_ADDRESS=#COPY EVEN NUMBER ADDRESS FROM DEPLOY LOGS
+    export DATA_FEEDER_ADDRESS=#COPY DATA FEEDER ADDRESS FROM DEPLOY LOGS
     ```
 
     > You can also use the following command to set the contract address if you have [`jq`][jq] installed:
     >
     > ```bash
-    > export EVEN_NUMBER_ADDRESS=$(jq -re '.transactions[] | select(.contractName == "EvenNumber") | .contractAddress' ./broadcast/Deploy.s.sol/1/run-latest.json)
+    > export DATA_FEEDER_ADDRESS=$(jq -re '.transactions[] | select(.contractName == "DataFeedFeeder") | .contractAddress' ./broadcast/Deploy.s.sol/1/run-latest.json)
     > ```
 
 ### Interact with your Ethereum Mainnet deployment
@@ -226,7 +368,7 @@ You can deploy your contract on Ethereum Mainnet as follows:
 1. Query the state:
 
     ```bash
-    cast call --rpc-url https://eth-mainnet.g.alchemy.com/v2/${ALCHEMY_API_KEY:?} ${EVEN_NUMBER_ADDRESS:?} 'get()(uint256)'
+    cast call --rpc-url https://eth-mainnet.g.alchemy.com/v2/${ALCHEMY_API_KEY:?} ${DATA_FEEDER_ADDRESS:?} 'get()(uint256, uint256)'
     ```
 
 2. Publish a new state
@@ -238,14 +380,15 @@ You can deploy your contract on Ethereum Mainnet as follows:
     cargo run --bin publisher -- \
         --chain-id=1 \
         --rpc-url=https://eth-mainnet.g.alchemy.com/v2/${ALCHEMY_API_KEY:?} \
-        --contract=${EVEN_NUMBER_ADDRESS:?} \
-        --input=12345678
+        --contract=${DATA_FEEDER_ADDRESS:?} \
+        --input=1234 \
+        --input=2=5678
     ```
 
 3. Query the state again to see the change:
 
     ```bash
-    cast call --rpc-url https://eth-mainnet.g.alchemy.com/v2/${ALCHEMY_API_KEY:?} ${EVEN_NUMBER_ADDRESS:?} 'get()(uint256)'
+    cast call --rpc-url https://eth-mainnet.g.alchemy.com/v2/${ALCHEMY_API_KEY:?} ${DATA_FEEDER_ADDRESS:?} 'get()(uint256, uint256)'
     ```
 
 [section-mainnet]: #deploy-your-project-on-ethereum-mainnet
