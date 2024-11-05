@@ -17,20 +17,54 @@ use std::io::Read;
 use alloy_primitives::U256;
 use alloy_sol_types::SolValue;
 use risc0_zkvm::guest::env;
+use json::parse;
+
 
 fn main() {
     // Read the input data for this application.
-    let mut input_bytes = Vec::<u8>::new();
-    env::stdin().read_to_end(&mut input_bytes).unwrap();
-    // Decode and parse the input
-    let (number, number_2): (U256, U256) = <(U256, U256)>::abi_decode(&input_bytes, true).unwrap();
+    let data: String = env::read();
+    let data = parse(&data).unwrap();
 
-    // Run the computation.
-    // In this case, asserting that all provided numbers are even.
-    assert!(!number.bit(0) && !number_2.bit(0), "at least one number is not even");
+    // TODO: using strings here, real json will contain float, EVM uses uint256, need to do something with conversions
+    let btc_price_str = data["BTC"]["price"].to_string();
+    let btc_price_u32: u32 = match btc_price_str.parse::<u32>() {
+        Ok(num) => num,
+        Err(e) => {
+            eprintln!("Failed to parse BTC price: {}", e);
+            eprintln!("btc_price_str: {}", btc_price_str);
+            eprintln!("data: {}", data);
+            return;
+        }
+    };
+
+    let eth_price_str = data["ETH"]["price"].to_string();
+    let eth_price_u32: u32 = match eth_price_str.parse::<u32>() {
+        Ok(num) => num,
+        Err(e) => {
+            eprintln!("Failed to parse eth price: {}", e);
+            eprintln!("btc_price_str: {}", eth_price_str);
+            eprintln!("data: {}", data);
+            return;
+        }
+    };
+
+
+    let timestamp_str = data["serverTime"].to_string();
+    let timestamp_u32: u32 = match timestamp_str.parse::<u32>() {
+        Ok(num) => num,
+        Err(e) => {
+            eprintln!("Failed to parse timestamp: {}", e);
+            eprintln!("serverTime: {}", timestamp_str);
+            eprintln!("data: {}", data);
+
+            return;
+        }
+    };
 
     // Commit the journal that will be received by the application contract.
     // Journal is encoded using Solidity ABI for easy decoding in the app contract.
-    let encoded_journal = (number, number_2).abi_encode();
+    let u256_number = U256::from(btc_price_u32);
+
+    let encoded_journal = (u256_number, eth_price_u32, timestamp_u32).abi_encode();
     env::commit_slice(&encoded_journal.as_slice());
 }

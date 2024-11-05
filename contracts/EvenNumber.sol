@@ -33,29 +33,28 @@ contract EvenNumber {
     ///         (in this case, checking if a number is even) are considered valid.
     bytes32 public constant imageId = ImageID.IS_EVEN_ID;
 
-    /// @notice A number that is guaranteed, by the RISC Zero zkVM, to be even.
-    ///         It can be set by calling the `set` function.
-    uint256 public number;
-    uint256 public number_2;
+    /// @notice A numbers that are guaranteed, by the RISC Zero zkVM, to be extracted from a json file.
+    ///         Can be set by calling the `set` function.
+    mapping(uint256 => uint256) public btc_price;
+    mapping(uint256 => uint256) public eth_price;
 
     /// @notice Initialize the contract, binding it to a specified RISC Zero verifier.
     constructor(IRiscZeroVerifier _verifier) {
         verifier = _verifier;
-        number = 0;
-        number_2 = 0;
     }
 
-    /// @notice Set the even number stored on the contract. Requires a RISC Zero proof that the number is even.
-    function set(uint256 x, uint256 y, bytes calldata seal) public {
+    /// @notice Set btc and eth prices with exact timestamp. Requires a RISC Zero proof that numbers are extracted from json.
+    function set(uint256 _btc_price, uint256 _eth_price, uint256 _timestamp, bytes calldata seal) public {
         // Construct the expected journal data. Verify will fail if journal does not match.
-        bytes memory journal = abi.encode(x, y);
+        bytes memory journal = abi.encode(_btc_price, _eth_price, _timestamp);
         verifier.verify(seal, imageId, sha256(journal));
-        number = x;
-        number_2 = y;
+
+        btc_price[_timestamp] = _btc_price;
+        eth_price[_timestamp] = _eth_price;
     }
 
-    /// @notice Returns the number stored.
-    function get() public view returns (uint256, uint256) {
-        return (number, number_2);
+    /// @notice Returns the prices at requested timestamp.
+    function get(uint256 timestamp) public view returns (uint256, uint256) {
+        return (btc_price[timestamp], eth_price[timestamp]);
     }
 }
