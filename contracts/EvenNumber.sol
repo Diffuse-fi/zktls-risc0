@@ -36,23 +36,26 @@ contract EvenNumber {
     /// @notice A number that is guaranteed, by the RISC Zero zkVM, to be even.
     ///         It can be set by calling the `set` function.
     uint256 public number;
+    uint256 public number_2;
 
     /// @notice Initialize the contract, binding it to a specified RISC Zero verifier.
     constructor(IRiscZeroVerifier _verifier) {
         verifier = _verifier;
         number = 0;
+        number_2 = 0;
     }
 
     /// @notice Set the even number stored on the contract. Requires a RISC Zero proof that the number is even.
-    function set(uint256 x, bytes calldata seal) public {
+    function set(uint256 x, uint256 y, bytes calldata seal) public {
         // Construct the expected journal data. Verify will fail if journal does not match.
-        bytes memory journal = abi.encode(x);
+        bytes memory journal = abi.encode(x, y);
         verifier.verify(seal, imageId, sha256(journal));
         number = x;
+        number_2 = y;
     }
 
     /// @notice Returns the number stored.
-    function get() public view returns (uint256) {
-        return number;
+    function get() public view returns (uint256, uint256) {
+        return (number, number_2);
     }
 }
