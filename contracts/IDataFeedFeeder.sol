@@ -25,5 +25,7 @@ interface IDataFeedFeeder {
     function set(uint256 _btc_price, uint256 _eth_price, uint256 _timestamp, bytes calldata seal) external;
 
     /// @notice Returns the btc and eth prices at timestamp.
-    function get(uint timestamp) external view returns (uint256, uint256);
+	function getBtcUsdStorageAddress() external view returns (address);
+
+	function getEthUsdStorageAddress() external view returns (address);
 }
