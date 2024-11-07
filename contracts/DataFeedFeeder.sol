@@ -17,12 +17,14 @@
 pragma solidity ^0.8.20;
 
 import {IRiscZeroVerifier} from "risc0/IRiscZeroVerifier.sol";
+import "./DataFeedStorage.sol";
 import {ImageID} from "./ImageID.sol"; // auto-generated contract after running `cargo build`.
 
 /// @title A starter application using RISC Zero.
 /// @notice This basic application holds a number, guaranteed to be even.
 /// @dev This contract demonstrates one pattern for offloading the computation of an expensive
 ///      or difficult to implement function to a RISC Zero guest running on the zkVM.
+
 contract DataFeedFeeder {
     /// @notice RISC Zero verifier contract address.
     IRiscZeroVerifier public immutable verifier;
@@ -33,14 +35,21 @@ contract DataFeedFeeder {
     ///         (in this case, checking if a number is even) are considered valid.
     bytes32 public constant imageId = ImageID.JSON_PARSER_ID;
 
-    /// @notice A numbers that are guaranteed, by the RISC Zero zkVM, to be extracted from a json file.
-    ///         Can be set by calling the `set` function.
-    mapping(uint256 => uint256) public btc_price;
-    mapping(uint256 => uint256) public eth_price;
+    address public address_BTCUSD;
+    address public address_ETHUSD;
+
+    DataFeedStorage private btcUsdStorageContract;
+    DataFeedStorage private ethUsdStorageContract;
 
     /// @notice Initialize the contract, binding it to a specified RISC Zero verifier.
     constructor(IRiscZeroVerifier _verifier) {
         verifier = _verifier;
+
+        btcUsdStorageContract = new DataFeedStorage("BTCUSD", 2);
+        ethUsdStorageContract = new DataFeedStorage("ETHUSD", 2);
+
+        address_BTCUSD = address(btcUsdStorageContract);
+        address_ETHUSD = address(ethUsdStorageContract);
     }
 
     /// @notice Set btc and eth prices with exact timestamp. Requires a RISC Zero proof that numbers are extracted from json.
@@ -49,12 +58,16 @@ contract DataFeedFeeder {
         bytes memory journal = abi.encode(_btc_price, _eth_price, _timestamp);
         verifier.verify(seal, imageId, sha256(journal));
 
-        btc_price[_timestamp] = _btc_price;
-        eth_price[_timestamp] = _eth_price;
+        btcUsdStorageContract.setNewRound(_btc_price, _timestamp);
+        ethUsdStorageContract.setNewRound(_eth_price, _timestamp);
     }
 
-    /// @notice Returns the prices at requested timestamp.
-    function get(uint256 timestamp) public view returns (uint256, uint256) {
-        return (btc_price[timestamp], eth_price[timestamp]);
+	function getBtcUsdStorageAddress() external view returns (address) {
+        return address_BTCUSD;
     }
+
+	function getEthUsdStorageAddress() external view returns (address) {
+        return address_ETHUSD;
+    }
+
 }

@@ -70,14 +70,17 @@ You can deploy your contracts and run an end-to-end test or demo as follows:
 
 ### Interact with your local deployment
 
-1. Query the state at timestamp = 1:
+1. Query the dataFeedStorage address of the BTCUSD pair
 
     ```bash
-    cast call --rpc-url http://localhost:8545 ${DATA_FEEDER_ADDRESS:?} 'get(uint256)(uint256, uint256)' '1'
+    cast call --rpc-url http://localhost:8545 ${DATA_FEEDER_ADDRESS:?} 'getBtcUsdStorageAddress()(address)'
     ```
-you will receive responce 0 0, there is no data at timestamp 1.
+    Save the BTCUSD dataFeedStorage address to an env variable
+    ```bash
+    export BTCUSD_FEED_STORAGE_ADDRESS=#COPY ADDRESS FROM QUERY RESPONSE
+    ```
 
-2. Publish a new state
+2. Publish price data
 
     ```bash
     cargo run --bin publisher -- \
@@ -87,12 +90,29 @@ you will receive responce 0 0, there is no data at timestamp 1.
         --json-path="test_inputs/01.json"
     ```
 
-3. Query the state again to see the change:
+3. Query the state:
 
     ```bash
-    cast call --rpc-url http://localhost:8545 ${DATA_FEEDER_ADDRESS:?} 'get(uint256)(uint256, uint256)' '1'
+    cast call --rpc-url http://localhost:8545 ${BTCUSD_FEED_STORAGE_ADDRESS:?} 'latestRoundData()(uint80, uint256, uint256, uint256, uint80)'
     ```
-now you will receive 10 100 responce. Also try to publish data from test_inputs/02.json and look at prices with timestamp=2.
+    You will receive 5 numbers: last round Id, answer (price), startedAt(timestamp), updatedAt(same timestamp), answeredInRound (current round Id)
+
+4. Publish next round of price data
+
+    ```bash
+    cargo run --bin publisher -- \
+        --chain-id=31337 \
+        --rpc-url=http://localhost:8545 \
+        --contract=${DATA_FEEDER_ADDRESS:?} \
+        --json-path="test_inputs/02.json"
+    ```
+5. Query the state:
+
+    ```bash
+    cast call --rpc-url http://localhost:8545 ${BTCUSD_FEED_STORAGE_ADDRESS:?} 'latestRoundData()(uint80, uint256, uint256, uint256, uint80)'
+    ```
+    Now the numbers will be changed to those specified in test_inputs/02.json
+
 
 ## Deploy your project on Sepolia testnet
 
