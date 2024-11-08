@@ -23,7 +23,7 @@ import {ImageID} from "./ImageID.sol"; // auto-generated contract after running 
 /// @notice This basic application holds a number, guaranteed to be even.
 /// @dev This contract demonstrates one pattern for offloading the computation of an expensive
 ///      or difficult to implement function to a RISC Zero guest running on the zkVM.
-contract EvenNumber {
+contract DataFeedFeeder {
     /// @notice RISC Zero verifier contract address.
     IRiscZeroVerifier public immutable verifier;
     /// @notice Image ID of the only zkVM binary to accept verification from.
@@ -31,7 +31,7 @@ contract EvenNumber {
     ///         It uniquely represents the logic of that guest program,
     ///         ensuring that only proofs generated from a pre-defined guest program
     ///         (in this case, checking if a number is even) are considered valid.
-    bytes32 public constant imageId = ImageID.IS_EVEN_ID;
+    bytes32 public constant imageId = ImageID.JSON_PARSER_ID;
 
     /// @notice A numbers that are guaranteed, by the RISC Zero zkVM, to be extracted from a json file.
     ///         Can be set by calling the `set` function.
