@@ -95,7 +95,16 @@ contract DataFeedFeederDeploy is Script, RiscZeroCheats {
         }
 
         // Deploy the application contract.
-        DataFeedFeeder dataFeedFeeder = new DataFeedFeeder(verifier);
+
+        // Duct tape, but helps to prototype fast --->
+        string[4] memory pair_names;
+        pair_names[0] = "ETHBTC";
+        pair_names[1] = "BTCUSDT";
+        pair_names[2] = "ETHUSDT";
+        pair_names[3] = "ETHUSDC";
+        // <--- Duct tape, but helps to prototype fast
+
+        DataFeedFeeder dataFeedFeeder = new DataFeedFeeder(verifier, pair_names);
         console2.log("Deployed DataFeedFeeder to", address(dataFeedFeeder));
 
         vm.stopBroadcast();

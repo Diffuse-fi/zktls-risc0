@@ -1,1 +1,18 @@
-{"serverTime":"1","BTC": {"price":"10"},"ETH": {"price":"100"}}
+{
+    "ETHBTC": {
+        "price": 0.03548,
+        "closeTime": 1730908508815
+    },
+    "BTCUSDT": {
+        "price": 74385.99,
+        "closeTime": 1730908510474
+    },
+    "ETHUSDT": {
+        "price": 2639.83,
+        "closeTime": 1730908509646
+    },
+    "ETHUSDC": {
+        "price": 2641.76,
+        "closeTime": 1730908508905
+    }
+}

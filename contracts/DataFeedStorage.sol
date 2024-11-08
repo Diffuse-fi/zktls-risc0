@@ -26,10 +26,12 @@ contract DataFeedStorage {
     uint8 decimals_amount;
     string description_string;
     RoundData[] public roundDataArray;
+    address public owner;
 
     constructor (string memory _description_string, uint8 _decimals_amount) {
         description_string = _description_string;
         decimals_amount = _decimals_amount;
+        owner = msg.sender;
     }
 
 	function decimals() external view returns (uint8) {
@@ -41,15 +43,18 @@ contract DataFeedStorage {
     }
 
 	function latestAnswer() external view returns (uint256) {
+        require(roundDataArray.length != 0, "there has been no rounds yet");
         return roundDataArray[roundDataArray.length - 1].answer;
     }
 
 	function latestRound() external view returns (uint256) {
+        require(roundDataArray.length != 0, "there has been no rounds yet");
         uint80 _latest_round = uint80(roundDataArray.length - 1);
         return _latest_round;
     }
 
 	function getRoundData(uint80 _roundId) external view returns (uint80 roundId, uint256 answer, uint256 startedAt, uint256 updatedAt, uint80 answeredInRound) {
+        require(roundDataArray.length != 0, "there has been no rounds yet");
         uint256 _answer = roundDataArray[roundId].answer;
         uint256 _timestamp = roundDataArray[roundId].timestamp;
         uint80 latest_round = uint80(roundDataArray.length - 1);
@@ -58,6 +63,7 @@ contract DataFeedStorage {
     }
 
 	function latestRoundData() external view returns (uint80 roundId, uint256 answer, uint256 startedAt, uint256 updatedAt, uint80 answeredInRound) {
+        require(roundDataArray.length != 0, "there has been no rounds yet");
         uint80 _latest_round = uint80(roundDataArray.length - 1);
         uint256 _answer = roundDataArray[_latest_round].answer;
         uint256 _timestamp = roundDataArray[_latest_round].timestamp;
@@ -66,7 +72,7 @@ contract DataFeedStorage {
     }
 
     function setNewRound(uint256 answer, uint256 timestamp) public {
-        // TODO add onlyOwner
+        require(msg.sender == owner, "Only storage owner can add new data");
         roundDataArray.push(RoundData(answer, timestamp));
     }
 }

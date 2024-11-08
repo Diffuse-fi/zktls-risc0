@@ -20,10 +20,12 @@ use alloy::{
     network::EthereumWallet, providers::ProviderBuilder, signers::local::PrivateKeySigner,
     sol_types::SolValue,
 };
-use alloy_primitives::{Address, U256};
+// use alloy_primitives::{Address, U256};
+use alloy_primitives::Address;
 use anyhow::{Context, Result};
 use clap::Parser;
 use methods::JSON_PARSER_ELF;
+use methods::guest_data_structs::{GuestInputType, GuestOutputType};
 use risc0_ethereum_contracts::encode_seal;
 use risc0_zkvm::{default_prover, ExecutorEnv, ProverOpts, VerifierContext};
 use url::Url;
@@ -74,8 +76,14 @@ fn main() -> Result<()> {
 
     // path to json file where information about prices is stored
     let json_path = args.json_path;
-    let data = fs::read_to_string(json_path).expect("Unable to read file");
-    let env = ExecutorEnv::builder().write(&data).unwrap().build()?;
+    let json_string = fs::read_to_string(json_path).expect("Unable to read file");
+
+    let guest_input = GuestInputType {
+        json_string: String::from(json_string),
+        currency_pairs: vec![String::from("ETHBTC"), String::from("BTCUSDT"), String::from("ETHUSDT"), String::from("ETHUSDC")],
+    };
+
+    let env = ExecutorEnv::builder().write(&guest_input).unwrap().build()?;
 
     let receipt = default_prover()
         .prove_with_ctx(
@@ -95,13 +103,26 @@ fn main() -> Result<()> {
     // Decode Journal: Upon receiving the proof, the application decodes the journal to extract
     // the verified numbers. This ensures that the numbers being submitted to the blockchain match
     // the numbers that were verified off-chain.
-    let (btc_price, eth_price, timestamp): (U256, U256, U256) = <(U256, U256, U256)>::abi_decode(&journal, true).context("decoding journal data")?;
+    let guest_output: GuestOutputType = <GuestOutputType>::abi_decode(&journal, true).context("decoding journal data")?;
+
+    const ARRAY_REPEAT_VALUE: std::string::String = String::new();
+    let mut pair_names = [ARRAY_REPEAT_VALUE; 4];
+    let mut prices = [0u64; 4];
+    let mut timestamps = [0u64; 4];
+
+    for (i, (first, second, third)) in guest_output.into_iter().enumerate() {
+        pair_names[i] = first;
+        prices[i] = second;
+        timestamps[i] = third;
+        println!("pair {}. name: {}, price: {}, timestamp:{}", i, pair_names[i], prices[i], timestamps[i]);
+    }
+
 
     // Construct function call: Using the IDataFeedFeeder interface, the application constructs
     // the ABI-encoded function call for the set function of the DataFeedFeeder contract.
     // This call includes the verified numbers, the post-state digest, and the seal (proof).
     let contract = IDataFeedFeeder::new(args.contract, provider);
-    let call_builder = contract.set(btc_price, eth_price, timestamp, seal.into());
+    let call_builder = contract.set(pair_names, prices, timestamps, seal.into());
 
     // Initialize the async runtime environment to handle the transaction sending.
     let runtime = tokio::runtime::Runtime::new()?;
