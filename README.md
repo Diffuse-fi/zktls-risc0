@@ -104,7 +104,7 @@ Your new project consists of:
 - Test your Solidity contracts, integrated with your zkVM program.
 
   ```sh
-  RISC0_DEV_MODE=true forge test -vvv 
+  RISC0_DEV_MODE=true forge test -vvv
   ```
 
 - Run the same tests, with the full zkVM prover rather than dev-mode, by setting `RISC0_DEV_MODE=false`.
@@ -113,14 +113,14 @@ Your new project consists of:
   RISC0_DEV_MODE=false forge test -vvv
   ```
 
-  Producing the [Groth16 SNARK proofs][Groth16] for this test requires running on an x86 machine with [Docker] installed, or using [Bonsai](#configuring-bonsai). Apple silicon is currently unsupported for local proving, you can find out more info in the relevant issues [here](https://github.com/risc0/risc0/issues/1520) and [here](https://github.com/risc0/risc0/issues/1749). 
+  Producing the [Groth16 SNARK proofs][Groth16] for this test requires running on an x86 machine with [Docker] installed, or using [Bonsai](#configuring-bonsai). Apple silicon is currently unsupported for local proving, you can find out more info in the relevant issues [here](https://github.com/risc0/risc0/issues/1520) and [here](https://github.com/risc0/risc0/issues/1749).
 
 ## Develop Your Application
 
 To build your application using the RISC Zero Foundry Template, you’ll need to make changes in three main areas:
 
 - ***Guest Code***: Write the code you want proven in the [methods/guest](./methods/guest/) folder. This code runs off-chain within the RISC Zero zkVM and performs the actual computations. For example, the provided template includes a computation to check if a given number is even and generate a proof of this computation.
-- ***Smart Contracts***: Write the on-chain part of your project in the [contracts](./contracts/) folder. The smart contract verifies zkVM proofs and updates the blockchain state based on the results of off-chain computations. For instance, in the [EvenNumber](./contracts/EvenNumber.sol) example, the smart contract verifies a proof that a number is even and stores that number on-chain if the proof is valid.
+- ***Smart Contracts***: Write the on-chain part of your project in the [contracts](./contracts/) folder. The smart contract verifies zkVM proofs and updates the blockchain state based on the results of off-chain computations. For instance, in the [DataFeedFeeder](./contracts/DataFeedFeeder.sol) example, the smart contract verifies a proof that a number is even and stores that number on-chain if the proof is valid.
 - ***Publisher Application***: Adjust the publisher example in the [apps](./apps/) folder. The publisher application bridges off-chain computation with on-chain verification by submitting proof requests, receiving proofs, and publishing them to the smart contract on Ethereum.
 
 ### Configuring Bonsai
@@ -168,10 +168,10 @@ Below are the primary files in the project directory
 │   ├── Cargo.toml
 │   └── src
 │       └── lib.rs                  // Utility functions
-│       └── bin                     
-│           └── publisher.rs        // Example app to publish program results into your app contract 
+│       └── bin
+│           └── publisher.rs        // Example app to publish program results into your app contract
 ├── contracts
-│   ├── EvenNumber.sol              // Basic example contract for you to modify
+│   ├── DataFeedFeeder.sol              // Basic example contract for you to modify
 │   └── ImageID.sol                 // Generated contract with the image ID for your zkVM program
 ├── methods
 │   ├── Cargo.toml
@@ -179,11 +179,11 @@ Below are the primary files in the project directory
 │   │   ├── Cargo.toml
 │   │   └── src
 │   │       └── bin                 // You can add additional guest programs to this folder
-│   │           └── is_even.rs      // Example guest program for checking if a number is even
+│   │           └── json_parser.rs      // Example guest program for checking if a number is even
 │   └── src
 │       └── lib.rs                  // Compiled image IDs and tests for your guest programs
 └── tests
-    ├── EvenNumber.t.sol            // Tests for the basic example contract
+    ├── DataFeedFeeder.t.sol            // Tests for the basic example contract
     └── Elf.sol                     // Generated contract with paths the guest program ELF files.
 ```
 

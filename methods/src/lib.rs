@@ -38,7 +38,7 @@ mod tests {
             .unwrap();
 
         // NOTE: Use the executor to run tests without proving.
-        let session_info = match default_executor().execute(env, super::IS_EVEN_ELF) {
+        let session_info = match default_executor().execute(env, super::JSON_PARSER_ELF) {
             Ok(info) => info,
             Err(e) => panic!("Execution failed with error: {:?}", e),
         };
@@ -62,7 +62,7 @@ mod tests {
             .unwrap();
 
         // NOTE: Use the executor to run tests without proving.
-        default_executor().execute(env, super::IS_EVEN_ELF).unwrap();
+        default_executor().execute(env, super::JSON_PARSER_ELF).unwrap();
 
     }
 }
