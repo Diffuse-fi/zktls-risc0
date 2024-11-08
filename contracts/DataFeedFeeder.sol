@@ -18,6 +18,7 @@ pragma solidity ^0.8.20;
 
 import {IRiscZeroVerifier} from "risc0/IRiscZeroVerifier.sol";
 import "./DataFeedStorage.sol";
+import "./PairDataStruct.sol";
 import {ImageID} from "./ImageID.sol"; // auto-generated contract after running `cargo build`.
 
 /// @title A starter application using RISC Zero.
@@ -33,41 +34,48 @@ contract DataFeedFeeder {
     ///         It uniquely represents the logic of that guest program,
     ///         ensuring that only proofs generated from a pre-defined guest program
     ///         (in this case, checking if a number is even) are considered valid.
+
     bytes32 public constant imageId = ImageID.JSON_PARSER_ID;
-
-    address public address_BTCUSD;
-    address public address_ETHUSD;
-
-    DataFeedStorage private btcUsdStorageContract;
-    DataFeedStorage private ethUsdStorageContract;
+    mapping (string => DataFeedStorage) dataFeedStorages;
+    uint constant PAIRS_AMOUNT = 4;
 
     /// @notice Initialize the contract, binding it to a specified RISC Zero verifier.
-    constructor(IRiscZeroVerifier _verifier) {
+    constructor(IRiscZeroVerifier _verifier, string[PAIRS_AMOUNT] memory /* array size must be fixed in memory */ pair_names) {
         verifier = _verifier;
 
-        btcUsdStorageContract = new DataFeedStorage("BTCUSD", 2);
-        ethUsdStorageContract = new DataFeedStorage("ETHUSD", 2);
-
-        address_BTCUSD = address(btcUsdStorageContract);
-        address_ETHUSD = address(ethUsdStorageContract);
+        for (uint i = 0; i < pair_names.length; i++) {
+            dataFeedStorages[pair_names[i]] = new DataFeedStorage(pair_names[i], 18 /* maybe we should store everything with 18 decimals?*/);
+        }
     }
 
     /// @notice Set btc and eth prices with exact timestamp. Requires a RISC Zero proof that numbers are extracted from json.
-    function set(uint256 _btc_price, uint256 _eth_price, uint256 _timestamp, bytes calldata seal) public {
+    // TODO: maybe its possible to pass array of custom structs, but not obvious
+    function set(
+        string[PAIRS_AMOUNT] memory pair_names,
+        uint64[PAIRS_AMOUNT] memory prices,
+        uint64[PAIRS_AMOUNT] memory timestamps,
+        bytes calldata seal
+    ) public {
         // Construct the expected journal data. Verify will fail if journal does not match.
-        bytes memory journal = abi.encode(_btc_price, _eth_price, _timestamp);
+        PairDataStruct[PAIRS_AMOUNT] memory pairs_data;
+        for (uint i = 0; i < PAIRS_AMOUNT; i++) {
+            pairs_data[i] = PairDataStruct(pair_names[i], prices[i], timestamps[i]);
+        }
+        bytes memory journal = abi.encode(pairs_data);
         verifier.verify(seal, imageId, sha256(journal));
 
-        btcUsdStorageContract.setNewRound(_btc_price, _timestamp);
-        ethUsdStorageContract.setNewRound(_eth_price, _timestamp);
+        for (uint i = 0; i < pairs_data.length; i++) {
+            PairDataStruct memory  _current_pair_data = pairs_data[i];
+            uint64 _price = _current_pair_data.price;
+            uint64 _timestamp = _current_pair_data.timestamp;
+            string memory _pair_name = _current_pair_data.pair_name;
+            dataFeedStorages[_pair_name].setNewRound(_price, _timestamp);
+        }
     }
 
-	function getBtcUsdStorageAddress() external view returns (address) {
-        return address_BTCUSD;
+    function getPairStorageAddress(string memory pair_name) external view returns (address) {
+        address result = address(dataFeedStorages[pair_name]);
+        require(result != address(0), "There is no data for requested pair");
+        return result;
     }
-
-	function getEthUsdStorageAddress() external view returns (address) {
-        return address_ETHUSD;
-    }
-
 }

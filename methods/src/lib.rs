@@ -15,24 +15,48 @@
 //! Generated crate containing the image ID and ELF binary of the build guest.
 include!(concat!(env!("OUT_DIR"), "/methods.rs"));
 
+pub mod guest_data_structs;
+
 #[cfg(test)]
 mod tests {
     use alloy_primitives::U256;
     use alloy_sol_types::SolValue;
     use risc0_zkvm::{default_executor, ExecutorEnv};
+    use super::guest_data_structs::GuestInputType;
+    use super::guest_data_structs::GuestOutputType;
 
     #[test]
     fn proves_even_number() {
         let data_str = r#"
         {
-            "BTC":{"price":"1234"},
-            "ETH":{"price":"5678"},
-            "serverTime":"90"
+            "ETHBTC": {
+                "price": 0.03548,
+                "closeTime": 1730908508815
+            },
+            "BTCUSDT": {
+                "price": 74385.99,
+                "closeTime": 1730908510474
+            },
+            "ETHUSDT": {
+                "price": 2639.83,
+                "closeTime": 1730908509646
+            },
+            "ETHUSDC": {
+                "price": 2641.76,
+                "closeTime": 1730908508905
+            }
         }"#
         .to_string();
 
+
+        let guest_input = GuestInputType {
+            json_string: String::from(data_str),
+            currency_pairs: vec![String::from("ETHBTC"), String::from("BTCUSDT"), String::from("ETHUSDT"), String::from("ETHUSDC")],
+        };
+
+
         let env = ExecutorEnv::builder()
-            .write(&data_str)
+            .write(&guest_input)
             .unwrap()
             .build()
             .unwrap();
@@ -43,14 +67,28 @@ mod tests {
             Err(e) => panic!("Execution failed with error: {:?}", e),
         };
 
-        let (btc_price, eth_price, timestamp): (U256, U256, U256) = <(U256, U256, U256)>::abi_decode(&session_info.journal.bytes, true).unwrap();
-        assert_eq!(btc_price, U256::from(1234));
-        assert_eq!(eth_price, U256::from(5678));
-        assert_eq!(timestamp, U256::from(90));
+
+        let res: GuestOutputType = <GuestOutputType>::abi_decode(&session_info.journal.bytes, true).unwrap();
+        assert_eq!("ETHBTC", res[0].0);
+        assert_eq!(3548, res[0].1);
+        assert_eq!(1730908508815, res[0].2);
+
+        assert_eq!("BTCUSDT", res[1].0);
+        assert_eq!(7438599000, res[1].1);
+        assert_eq!(1730908510474, res[1].2);
+
+        assert_eq!("ETHUSDT", res[2].0);
+        assert_eq!(263983000, res[2].1);
+        assert_eq!(1730908509646, res[2].2);
+
+        assert_eq!("ETHUSDC", res[3].0);
+        assert_eq!(264176000, res[3].1);
+        assert_eq!(1730908508905, res[3].2);
+
     }
 
     #[test]
-    #[should_panic(expected = "called `Result::unwrap()` on an `Err` value: Guest panicked: called `Result::unwrap()` on an `Err` value: UnexpectedCharacter { ch: 'H', line: 1, column: 1 }")]
+    #[should_panic(expected = "called `Result::unwrap()` on an `Err` value: Guest panicked: called `Result::unwrap()` on an `Err` value: DeserializeUnexpectedEnd")]
     fn rejects_odd_number() {
         let data_str = r#"Hello, world!"#
         .to_string();

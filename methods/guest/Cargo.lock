@@ -887,6 +887,8 @@ dependencies = [
  "alloy-sol-types",
  "json",
  "risc0-zkvm",
+ "serde",
+ "serde_derive",
 ]
 
 [[package]]
