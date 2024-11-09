@@ -10,7 +10,69 @@ You can either:
 - [Deploy to a testnet][section-testnet]
 - [Deploy to Ethereum Mainnet][section-mainnet]
 
-## Deploy your project on a local network
+## Deploy your project on a local network using our CLI
+
+You can deploy your contracts and run an end-to-end test or demo as follows:
+
+1. Start a local testnet with `anvil` by running:
+
+    ```bash
+    anvil
+    ```
+
+    Once anvil is started, keep it running in the terminal, and switch to a new terminal.
+
+2. Set your environment variables:
+    ```bash
+    # Anvil sets up a number of default wallets, and this private key is one of them.
+    export ETH_WALLET_PRIVATE_KEY=0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
+    ```
+
+3. Build your project:
+
+    ```bash
+    cargo build
+    ```
+
+4. Deploy data feeder contract by running:
+
+    ```bash
+    python3 cli/deploy_feeder.py
+    ```
+    this contract creates storage contracts on deployment and writes proven data into them
+
+5. Prove data from json file and write to datafeedL
+
+    ```bash
+    python3 cli/feed_feeder.py 1
+    ```
+    1 is the number of test file
+
+6. Now You can request data from data feed storage:
+
+    ```bash
+    python3 cli/request_storage.py ETHBTC
+    ```
+    or
+
+    ```bash
+    python3 cli/request_storage.py BTCUSDT
+    ```
+
+7. Prove another data from json file and write to datafeed
+
+    ```bash
+    python3 cli/feed_feeder.py 2
+    ```
+
+8. Price onchain has changed:
+
+    ```bash
+    python3 cli/request_storage.py ETHBTC
+    ```
+
+
+## Deploy your project on a local network manually
 
 You can deploy your contracts and run an end-to-end test or demo as follows:
 
@@ -70,14 +132,14 @@ You can deploy your contracts and run an end-to-end test or demo as follows:
 
 ### Interact with your local deployment
 
-1. Query the dataFeedStorage address of the BTCUSD pair
+1. Query the dataFeedStorage address of the ETHBTC pair
 
     ```bash
-    cast call --rpc-url http://localhost:8545 ${DATA_FEEDER_ADDRESS:?} 'getBtcUsdStorageAddress()(address)'
+    cast call --rpc-url http://localhost:8545 ${DATA_FEEDER_ADDRESS:?} 'getPairStorageAddress(string)(address)' 'ETHBTC'
     ```
-    Save the BTCUSD dataFeedStorage address to an env variable
+    Save the ETHBTC dataFeedStorage address to an env variable
     ```bash
-    export BTCUSD_FEED_STORAGE_ADDRESS=#COPY ADDRESS FROM QUERY RESPONSE
+    export ETHBTC_FEED_STORAGE_ADDRESS=#COPY ADDRESS FROM QUERY RESPONSE
     ```
 
 2. Publish price data
@@ -93,7 +155,7 @@ You can deploy your contracts and run an end-to-end test or demo as follows:
 3. Query the state:
 
     ```bash
-    cast call --rpc-url http://localhost:8545 ${BTCUSD_FEED_STORAGE_ADDRESS:?} 'latestRoundData()(uint80, uint256, uint256, uint256, uint80)'
+    cast call --rpc-url http://localhost:8545 ${ETHBTC_FEED_STORAGE_ADDRESS:?} 'latestRoundData()(uint80, uint256, uint256, uint256, uint80)'
     ```
     You will receive 5 numbers: last round Id, answer (price), startedAt(timestamp), updatedAt(same timestamp), answeredInRound (current round Id)
 
@@ -109,7 +171,7 @@ You can deploy your contracts and run an end-to-end test or demo as follows:
 5. Query the state:
 
     ```bash
-    cast call --rpc-url http://localhost:8545 ${BTCUSD_FEED_STORAGE_ADDRESS:?} 'latestRoundData()(uint80, uint256, uint256, uint256, uint80)'
+    cast call --rpc-url http://localhost:8545 ${ETHBTC_FEED_STORAGE_ADDRESS:?} 'latestRoundData()(uint80, uint256, uint256, uint256, uint80)'
     ```
     Now the numbers will be changed to those specified in test_inputs/02.json
 
