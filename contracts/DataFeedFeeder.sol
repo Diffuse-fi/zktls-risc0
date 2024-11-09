@@ -44,7 +44,7 @@ contract DataFeedFeeder {
         verifier = _verifier;
 
         for (uint i = 0; i < pair_names.length; i++) {
-            dataFeedStorages[pair_names[i]] = new DataFeedStorage(pair_names[i], 18 /* maybe we should store everything with 18 decimals?*/);
+            dataFeedStorages[pair_names[i]] = new DataFeedStorage(pair_names[i], 5 /* TODO hardcoded*/);
         }
     }
 
