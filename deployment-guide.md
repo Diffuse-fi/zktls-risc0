@@ -22,7 +22,7 @@ You can deploy your contracts and run an end-to-end test or demo as follows:
 
     Once anvil is started, keep it running in the terminal, and switch to a new terminal.
 
-2. Set your environment variables:
+2. Set your environment variables (remember, you need other key for testnet):
     ```bash
     # Anvil sets up a number of default wallets, and this private key is one of them.
     export ETH_WALLET_PRIVATE_KEY=0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
@@ -37,40 +37,80 @@ You can deploy your contracts and run an end-to-end test or demo as follows:
 4. Deploy data feeder contract by running:
 
     ```bash
-    python3 cli/deploy_feeder.py
+    python3 cli/deploy_feeder.py -n local
     ```
     this contract creates storage contracts on deployment and writes proven data into them
 
-5. Prove data from json file and write to datafeedL
+5. Prove data from json file and write to datafeed:
 
     ```bash
-    python3 cli/feed_feeder.py 1
+    python3 cli/feed_feeder.py -n local --binance
     ```
-    1 is the number of test file
+    --binance flag means that data will be requested from binance. Also you can local test set --test-set-nr=1 or =2
 
 6. Now You can request data from data feed storage:
 
     ```bash
-    python3 cli/request_storage.py ETHBTC
+    python3 cli/request_storage.py --network local --pair ETHBTC --method latestRoundData
     ```
     or
 
     ```bash
-    python3 cli/request_storage.py BTCUSDT
+    python3 cli/request_storage.py --network local --pair BTCUSDT --method latestRoundData
     ```
 
 7. Prove another data from json file and write to datafeed
 
     ```bash
-    python3 cli/feed_feeder.py 2
+    python3 cli/feed_feeder.py -n local --binance
     ```
 
 8. Price onchain has changed:
 
     ```bash
-    python3 cli/request_storage.py ETHBTC
+    python3 cli/request_storage.py -n local -p BTCUSDT --m latestRoundData
     ```
 
+## Interact with sepolia contract using our CLI
+
+1. Set your environment variables (NOT the one from anvil! You need to change this viriable if you worked locally!):
+    ```bash
+    export ALCHEMY_API_KEY="YOUR_ALCHEMY_API_KEY" # the API_KEY provided with an alchemy account
+    export ETH_WALLET_PRIVATE_KEY="YOUR_WALLET_PRIVATE_KEY" # the private hex-encoded key of your Sepolia testnet wallet
+    ```
+
+2. Build your project:
+
+    ```bash
+    cargo build
+    ```
+3. No instruction for deployment because contracts are already deployed
+
+5. Prove data from json file and write to datafeed:
+
+    ```bash
+    python3 cli/feed_feeder.py -n sepolia --binance
+    ```
+    --binance flag means that data will be requested from binance.
+
+6. Now You can request data from data feed storage:
+
+    ```bash
+    python3 cli/request_storage.py --network sepolia --pair BTCUSDT --method latestRoundData
+    ```
+    list of avaliable pairs is stored in cli/addresses/sepolia
+
+7. Prove another data from json file and write to datafeed
+
+    ```bash
+    python3 cli/feed_feeder.py -n sepolia --binance
+    ```
+
+8. Price onchain has changed:
+
+    ```bash
+    python3 cli/request_storage.py -n sepolia -p BTCUSDT --m latestRoundData
+    ```
 
 ## Deploy your project on a local network manually
 

@@ -1,57 +1,71 @@
 import subprocess
 import sys
+from datetime import datetime
+from utils.network import *
 
-def get(pair_name, request_name):
-    file = open('cli/addresses/' + pair_name + '.txt', 'r')
+
+class method_enum(enum.Enum):
+    DECIMALS = "decimals"
+    DESCRIPTION = "description"
+    LATEST_ANSWER = "latestAnswer"
+    LATEST_ROUND = "latestRound"
+    LATEST_ROUND_DATA = "latestRoundData"
+
+def parse_request(value):
+    try:
+        return method_enum(value)
+    except ValueError:
+        raise argparse.ArgumentTypeError(f"Invalid network: {value}. Possible valies: {[n.value for n in method_enum]}")
+
+def get_request_signature(req):
+    match req:
+        case method_enum.DECIMALS:
+            return "decimals()(uint8)"
+        case method_enum.DESCRIPTION:
+            return "description()(string)"
+        case method_enum.LATEST_ANSWER:
+            return "latestAnswer()(uint256)"
+        case method_enum.LATEST_ROUND:
+            return "latestRound()(uint256)"
+        case method_enum.LATEST_ROUND_DATA:
+            return "latestRoundData()(uint80, uint256, uint256, uint256, uint80)"
+
+def do_request(pair, net, req):
+    file = open('cli/addresses/' + net.value + '/' + pair.value + '.txt', 'r')
     storage_address = file.readline().strip()
     file.close()
 
-    match request_name:
-        case "decimals":
-            request_prod = 'decimals()(uint8)'
-        case "description":
-            request_prod = 'description()(string)'
-        case "latestAnswer":
-            request_prod = 'latestAnswer()(uint256)'
-        case "latestRound":
-            request_prod = 'latestRound()(uint256)'
-        case _:
-            request_prod = 'latestRoundData()(uint80, uint256, uint256, uint256, uint80)'
+    print("requesting method", req.value)
 
-    print("requesting method", request_prod)
+    command = [
+        "cast",
+        "call",
+        rpc_url(net),
+        storage_address,
+        get_request_signature(req)
+    ]
 
-    command = ["cast", "call", "--rpc-url", "http://localhost:8545", storage_address, request_prod]
+    result = run_subprocess(command, "request method '" + req.value + "' for " + pair.value)
 
+    if req == method_enum.LATEST_ROUND_DATA:
+        result = result.split("\n")
+        print("round number:", result[0])
+        print("answer:", result[1], "(price:", int(result[1].split(" [")[0]) / 100000, ")")
 
-    result = subprocess.run(command, capture_output=True, text=True)
-
-    exit_code = result.returncode
-
-    if (exit_code == 0):
-        print("Successfully requested data from storage")
-        if (request_prod != 'latestRoundData()(uint80, uint256, uint256, uint256, uint80)'):
-            print(result.stdout)
-        else:
-            res = result.stdout
-            res = res.split("\n")
-            print("round number:", res[0])
-            print("answer:", res[1], "(price:", int(res[1].split(" [")[0]) / 100000, ")")
-            print("timestamp:", res[2])
+        timestamp = int(int(result[2].split(" [")[0]) / 1000)
+        readable_date = datetime.fromtimestamp(timestamp).strftime('%Y-%m-%d %H:%M:%S')
+        print("timestamp:", timestamp, "(human readable:)", readable_date)
     else:
-        print("Storage request has failed")
-        print(result.stderr)
-        sys.exit(1)
+        print("result:", result)
     print("===================================")
 
-if len(sys.argv) == 2:
-    pair = sys.argv[1]
-    get(pair, "")
-elif len(sys.argv) > 2:
-    pair = sys.argv[1]
-    request = sys.argv[2]
-    get(pair, request)
-else:
-    print("Enter pair name and request")
 
+parser = argparse.ArgumentParser(description="Storage request parameters")
+parser.add_argument('-n', '--network', type=parse_network, required=True, help="Choose network (local, sepolia, eth_mainnet)")
+parser.add_argument('-p', '--pair', type=parse_pairname, required=True, help="Choose pair (ETHBTC, BTCUSDT, ETHUSDT, ETHUSDC)")
+parser.add_argument('-m', '--method', type=parse_request, required=True,
+    help="Choose request (decimals, description, latestAnswer, latestRound, latestRoundData)")
 
+args = parser.parse_args()
 
+do_request(args.pair, args.network, args.method)
