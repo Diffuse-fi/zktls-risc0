@@ -1,79 +1,63 @@
-key_file =  open('cli/anvil_private_key.txt', 'r')
-private_key = key_file.readline().strip()
-key_file.close()
-
 import subprocess
 import sys
 import os
+from utils.network import *
 
-if not os.path.exists("cli/addresses/feeder"):
-    os.makedirs("cli/addresses/feeder")
+def deploy_data_feeder(net):
 
-def deploy_data_feeder(what, command):
-    print("===================================")
-    result = subprocess.run(command, capture_output=True, text=True)
-    exit_code = result.returncode
-    print("stdout:")
-    print(result.stdout)
-    print("stderr:")
-    print(result.stderr)
-    if (exit_code == 0):
-        print(what, "SUCCESSFUL!")
+    if net == network_enum.LOCAL:
+        print("deploying DataFeedFeeder to", net.value)
     else:
-        print(what, "FAILED!")
-        sys.exit(1)
-    print("===================================")
+        while(True):
+            user_input = input("You are deploying DataFeeder to " + net.value + " network. Are you sure? [y/n]: ").lower()
+            if user_input == 'y':
+                break
+            elif user_input == 'n':
+                print("cancelled execution", file=sys.stderr)
+                sys.exit(1)
+            else:
+                print("Please enter 'y' or 'n'.")
+                continue
 
-    data_feeder_address = result.stdout.split("Deployed DataFeedFeeder to ")[1].split("\n")[0]
-    file = open('cli/addresses/feeder/address.txt', 'w')
+
+    deployment_command = ["forge", "script", rpc_url(net), chain_id(net), "--broadcast", "script/Deploy.s.sol"]
+    result = run_subprocess(deployment_command, "DataFeedFeeder deployment")
+    data_feeder_address = result.split("Deployed DataFeedFeeder to ")[1].split("\n")[0].strip()
+
+    if (data_feeder_address.find('0x') != 0 or len(data_feeder_address) != 42):
+        print("Deployment was successfull, but address parsing from server response FAILED", file=sys.stderr)
+        print("expected address afrer \"Deployed DataFeedFeeder to\"\n", file=sys.stderr)
+        print("response:", result, file=sys.stderr)
+        sys.exit(1)
+
+    if not os.path.exists(os.path.dirname(address_path(net.value, "feeder"))):
+        os.makedirs(os.path.dirname(address_path(net.value, "feeder")))
+
+    file = open(address_path(net.value, "feeder"), 'w')
     file.write(data_feeder_address)
+    print("wrote address to", address_path(net.value, "feeder"), "\n======================================")
+    file.close()
+
     file.close()
 
 
-def request_storage_addresses(pair_name):
-    file = open('cli/addresses/feeder/address.txt', 'r')
-    data_feeder_address = file.readline().strip()
+def request_storage_addresses(net, pair_name):
+    command = [ "cast", "call", rpc_url(net), get_feeder_address(net.value), "getPairStorageAddress(string)(address)", pair_name]
+    result = run_subprocess(command, "request DataFeedStorage address for " + pair_name + " ")
+
+    file = open(address_path(net.value, pair_name), 'w')
+    print("wrote address to", address_path(net.value, pair_name), "\n======================================")
+    file.write(result.strip())
     file.close()
 
-    command = [
-        "cast",
-        "call",
-        "--rpc-url",
-        "http://localhost:8545",
-        data_feeder_address,
-        "getPairStorageAddress(string)(address)",
-        pair_name
-    ]
 
-    result = subprocess.run(command, capture_output=True, text=True)
+parser = argparse.ArgumentParser(description="Data feeder parameters")
+parser.add_argument('-n', '--network', type=parse_network, required=True, help="Choose network (local, sepolia, eth_mainnet)")
 
-    exit_code = result.returncode
-
-    if (exit_code == 0):
-        print("Successfully requested DataFeedStorage address for", pair_name, ":", result.stdout)
-        file = open('cli/addresses/' + pair_name + ".txt", 'w')
-        file.write(result.stdout)
-        file.close()
-    else:
-        print("DataFeedStorage address request for", pair_name, " has FAILED!")
-        print(result.stderr)
-        sys.exit(1)
-    print("===================================")
+args = parser.parse_args()
 
 
+deploy_data_feeder(args.network)
 
-deployment_command = [
-    "forge",
-    "script",
-    "--rpc-url",
-    "http://localhost:8545",
-    "--broadcast",
-    "script/Deploy.s.sol"
-    ]
-
-deploy_data_feeder("DataFeedFeeder deployment", deployment_command)
-
-request_storage_addresses("ETHBTC")
-request_storage_addresses("BTCUSDT")
-request_storage_addresses("ETHUSDT")
-request_storage_addresses("ETHUSDC")
+for p in pair_name_enum:
+    request_storage_addresses(args.network, p.value)
