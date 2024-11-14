@@ -13,6 +13,7 @@ tests/Elf.sol
 cli/addresses/local
 
 # Data from binance
+data/
 stripped_prices.json
 response.json
 

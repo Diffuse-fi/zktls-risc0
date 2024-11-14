@@ -30,6 +30,7 @@ use risc0_ethereum_contracts::encode_seal;
 use risc0_zkvm::{default_prover, ExecutorEnv, ProverOpts, VerifierContext};
 use url::Url;
 use std::fs;
+use std::path::Path;
 
 // `IDataFeedFeeder` interface automatically generated via the alloy `sol!` macro.
 alloy::sol!(
@@ -56,10 +57,6 @@ struct Args {
     /// Application's contract address on Ethereum
     #[clap(long)]
     contract: Address,
-
-    /// Path to json
-    #[clap(long)]
-    json_path: String,
 }
 
 fn main() -> Result<()> {
@@ -74,31 +71,62 @@ fn main() -> Result<()> {
         .wallet(wallet)
         .on_http(args.rpc_url);
 
-    // path to json file where information about prices is stored
-    let json_path = args.json_path;
-    let json_string = fs::read_to_string(json_path).expect("Unable to read file");
 
-    let guest_input = GuestInputType {
-        json_string: String::from(json_string),
-        currency_pairs: vec![String::from("ETHBTC"), String::from("BTCUSDT"), String::from("ETHUSDT"), String::from("ETHUSDC")],
-    };
+    let data_storage_path = Path::new("data/");
 
-    let env = ExecutorEnv::builder().write(&guest_input).unwrap().build()?;
+    let mut max_number = 0;
 
-    let receipt = default_prover()
-        .prove_with_ctx(
-            env,
-            &VerifierContext::default(),
-            JSON_PARSER_ELF,
-            &ProverOpts::groth16(),
-        )?
-        .receipt;
+    if data_storage_path.is_dir() {
+        for entry in fs::read_dir(data_storage_path)? {
+            let entry = entry?;
+            if let Some(folder_name) = entry.file_name().to_str() {
+                if let Ok(number) = folder_name.parse::<u32>() {
+                    if number > max_number {
+                        max_number = number;
+                    }
+                }
+            }
+        }
+    }
 
-    // Encode the seal with the selector.
-    let seal = encode_seal(&receipt)?;
+    let max_folder_path = data_storage_path.join(format!("{}", max_number));
+    let seal_path = max_folder_path.join("seal.bin");
+    let journal_path = max_folder_path.join("journal.bin");
+    let json_path = max_folder_path.join("prover_input.json");
 
-    // Extract the journal from the receipt.
-    let journal = receipt.journal.bytes.clone();
+    let already_proven = seal_path.exists() && journal_path.exists();
+
+    if !already_proven {
+        let json_string = fs::read_to_string(json_path).expect("Unable to read file");
+
+        let guest_input = GuestInputType {
+            json_string: String::from(json_string),
+            currency_pairs: vec![String::from("ETHBTC"), String::from("BTCUSDT"), String::from("ETHUSDT"), String::from("ETHUSDC")],
+        };
+
+        let env = ExecutorEnv::builder().write(&guest_input).unwrap().build()?;
+
+        let receipt = default_prover()
+            .prove_with_ctx(
+                env,
+                &VerifierContext::default(),
+                JSON_PARSER_ELF,
+                &ProverOpts::groth16(),
+            )?
+            .receipt;
+
+        // Encode the seal with the selector.
+        let seal = encode_seal(&receipt)?;
+
+        // Extract the journal from the receipt.
+        let journal = receipt.journal.bytes.clone();
+
+        fs::write(seal_path.clone(), &seal)?;
+        fs::write(journal_path.clone(), &journal)?;
+    }
+
+    let seal = fs::read(seal_path.clone())?;
+    let journal = fs::read(journal_path.clone())?;
 
     // Decode Journal: Upon receiving the proof, the application decodes the journal to extract
     // the verified numbers. This ensures that the numbers being submitted to the blockchain match
