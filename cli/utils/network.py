@@ -20,6 +20,7 @@ def parse_pairname(value):
 class network_enum(enum.Enum):
     LOCAL = "local"
     SEPOLIA = "sepolia"
+    NEON_DEVNET = "neon_devnet"
     ETH_MAINNET = "eth_mainnet"
 
 def parse_network(value):
@@ -62,6 +63,8 @@ def chain_id(net):
             return "--chain-id=31337"
         case network_enum.SEPOLIA:
             return "--chain-id=11155111"
+        case network_enum.NEON_DEVNET:
+            return "--chain-id=245022926"
         case network_enum.ETH_MAINNET:
             return "--chain-id=1"
 
@@ -74,5 +77,7 @@ def rpc_url(net):
             return "--rpc-url=http://localhost:8545"
         case network_enum.SEPOLIA:
             return "--rpc-url=https://eth-sepolia.g.alchemy.com/v2/" + alchemy_api_key
+        case network_enum.NEON_DEVNET:
+            return "--rpc-url=https://devnet.neonevm.org"
         case network_enum.ETH_MAINNET:
             return "--rpc-url=https://eth-mainnet.g.alchemy.com/v2/" + alchemy_api_key
