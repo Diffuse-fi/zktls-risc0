@@ -26,3 +26,6 @@ target/
 # Misc
 .DS_Store
 .idea
+
+# pycache
+cli/utils/__pycache__
