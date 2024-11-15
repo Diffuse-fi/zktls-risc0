@@ -27,5 +27,9 @@ target/
 .DS_Store
 .idea
 
-# pycache
-cli/utils/__pycache__
+#pycache
+cli/utils/__pycache__/
+
+# cron logs
+cron_log.txt
+feeding_log.txt
