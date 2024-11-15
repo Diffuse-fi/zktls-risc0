@@ -2,9 +2,7 @@ import sys
 import argparse
 from utils.network import *
 
-
-def prepare_json (_binance_flag, test_data_1, test_data_2):
-
+def find_latest_data():
     latest_data = -1
 
     os.makedirs("data/", exist_ok=True)
@@ -13,30 +11,16 @@ def prepare_json (_binance_flag, test_data_1, test_data_2):
     for d in existing_data:
         if (d.isdigit() == True):
             latest_data = max(latest_data, int(d))
-
-    new_data_dir = "data/" + str(latest_data + 1) + "/"
-    os.makedirs(new_data_dir)
-
-    files = ["prover_input.json", "seal.bin", "journal.bin"]
-
-    if test_data_1 == True:
-        for f in files:
-            run_subprocess(["cp", "test_data_1/0/" + f, new_data_dir + f], "copy" + " test_data_1/0/" + f + " to" + new_data_dir + f)
-
-    elif test_data_2 == True:
-        for f in files:
-            run_subprocess(["cp", "test_data_2/0/" + f, new_data_dir + f], "copy" + " test_data_2/0/" + f + " to " + new_data_dir + f)
-
-    elif _binance_flag == True:
-        run_subprocess(["python3", "data-provider/script.py"], "request from binance")
-        run_subprocess(["cp", "stripped_prices.json", new_data_dir + "prover_input.json"], "copy binance data to " + new_data_dir)
-
-    else:
-        print("expected either --test-data-1 or --test-data-2 or --binance flag")
-        sys.exit(1)
+    return latest_data
 
 
 def feed_data(net):
+    if net == network_enum.NEON_DEVNET:
+        feed_data_legacy(net)
+    else:
+        feed_data_publisher(net)
+
+def feed_data_publisher(net):
     command = [
         "cargo",
         "run",
@@ -47,21 +31,45 @@ def feed_data(net):
         rpc_url(net),
         "--contract=" + get_feeder_address(net.value)
     ]
+    run_subprocess(command, "DataFeeder feeding")
+
+
+def feed_data_legacy(net):
+    latest_data_dir = "data/" + str(find_latest_data()) + "/"
+
+    with open(latest_data_dir + "prices.txt") as prices_file:
+        prices = prices_file.read()
+
+    with open(latest_data_dir + "timestamps.txt") as timestamps_file:
+        timestamps = timestamps_file.read()
+
+    with open(latest_data_dir + "seal.bin", "rb") as file:
+        bin_seal = file.read()
+        hex_seal = '0x' + bin_seal.hex()
+    pairs = """["ETHBTC", "BTCUSDT", "ETHUSDT", "ETHUSDC"]"""
+
+    method_signature = "set(string[4] memory pair_names,uint64[4] memory prices,uint64[4] memory timestamps,bytes calldata seal)"
+
+    command = [
+        "cast",
+        "send",
+        "--private-key=" + os.getenv("ETH_WALLET_PRIVATE_KEY"),
+        "--legacy",
+        rpc_url(net),
+        get_feeder_address(net.value),
+        method_signature,
+        pairs,
+        prices,
+        timestamps,
+        hex_seal
+    ]
 
     run_subprocess(command, "DataFeeder feeding")
 
 
 parser = argparse.ArgumentParser(description="Data feeder parameters")
-parser.add_argument('-n', '--network', type=parse_network, required=True, help="Choose network (local, sepolia, eth_mainnet)")
-
-data_source_group = parser.add_mutually_exclusive_group()
-data_source_group.add_argument('--binance', action='store_true', help='Request data from binance and feed')
-data_source_group.add_argument('--test-data-1', action='store_true', help='Take dataset from test_data_1/')
-data_source_group.add_argument('--test-data-2', action='store_true', help='Take dataset from test_data_2')
-
+parser.add_argument('-n', '--network', type=parse_network, required=True, help="Choose network (local, sepolia, eth_mainnet, neon_devnet)")
 args = parser.parse_args()
 
-
-prepare_json(args.binance, args.test_data_1, args.test_data_2)
 feed_data(args.network)
 

@@ -41,12 +41,21 @@ You can deploy your contracts and run an end-to-end test or demo as follows:
     ```
     this contract creates storage contracts on deployment and writes proven data into them
 
-5. Prove data from json file and write to datafeed:
+5. Parse data from binance and create proof:
 
     ```bash
-    python3 cli/feed_feeder.py -n local --binance
+    python3 cli/feed_feeder.py --binance
     ```
-    --binance flag means that data will be requested from binance. Also you can local test set --test-set-nr=1 or =2
+    also you can use already proven test data, it will work faster
+    ```bash
+    python3 cli/feed_feeder.py --test-data-1
+    ```
+
+5. Deploy data to chain:
+
+    ```bash
+    python3 cli/feed_feeder.py -n local
+    ```
 
 6. Now You can request data from data feed storage:
 
@@ -59,10 +68,10 @@ You can deploy your contracts and run an end-to-end test or demo as follows:
     python3 cli/request_storage.py --network local --pair BTCUSDT --method latestRoundData
     ```
 
-7. Prove another data from json file and write to datafeed
+7. Repeat parsing and proving
 
     ```bash
-    python3 cli/feed_feeder.py -n local --binance
+    python3 cli/feed_feeder.py --binance
     ```
 
 8. Price onchain has changed:
@@ -86,12 +95,21 @@ You can deploy your contracts and run an end-to-end test or demo as follows:
     ```
 3. No instruction for deployment because contracts are already deployed
 
-5. Prove data from json file and write to datafeed:
+5. Parse data from binance and prove it:
 
     ```bash
-    python3 cli/feed_feeder.py -n sepolia --binance
+    python3 cli/parse_and_prove.py --binance
     ```
-    --binance flag means that data will be requested from binance.
+
+5. publish it to sepolia:
+
+    ```bash
+    python3 cli/feed_feeder.py -n sepolia
+    ```
+    once proven, data can be reused, you can publish the same data on neon
+    ```bash
+    python3 cli/feed_feeder.py -n neon_devnet
+    ```
 
 6. Now You can request data from data feed storage:
 
@@ -100,19 +118,8 @@ You can deploy your contracts and run an end-to-end test or demo as follows:
     ```
     list of avaliable pairs is stored in cli/addresses/sepolia
 
-7. Prove another data from json file and write to datafeed
 
-    ```bash
-    python3 cli/feed_feeder.py -n sepolia --binance
-    ```
-
-8. Price onchain has changed:
-
-    ```bash
-    python3 cli/request_storage.py -n sepolia -p BTCUSDT --m latestRoundData
-    ```
-
-## Deploy your project on a local network manually
+## Deploy your project on a local network manually (I don't want to update these docs)
 
 You can deploy your contracts and run an end-to-end test or demo as follows:
 
@@ -187,7 +194,7 @@ You can deploy your contracts and run an end-to-end test or demo as follows:
     ```bash
     cargo run --bin publisher -- \
         --chain-id=31337 \
-        --rpc-url=http://localhost:8545 \
+        --rpc-url= \
         --contract=${DATA_FEEDER_ADDRESS:?} \
         --json-path="test_inputs/01.json"
     ```
