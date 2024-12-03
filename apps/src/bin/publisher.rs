@@ -31,6 +31,7 @@ use risc0_zkvm::{default_prover, ExecutorEnv, ProverOpts, VerifierContext};
 use url::Url;
 use std::fs;
 use std::path::Path;
+use std::io;
 
 // `IDataFeedFeeder` interface automatically generated via the alloy `sol!` macro.
 alloy::sol!(
@@ -57,6 +58,17 @@ struct Args {
     /// Application's contract address on Ethereum
     #[clap(long)]
     contract: Address,
+
+    /// Just generate proof and do not publish to chain.
+    /// We have several chains, want to have ablilty to prove without publishing
+    #[clap(long)]
+    do_not_publish: bool,
+}
+
+fn write_array_to_file<T: ToString, P: AsRef<Path>>(array: &[T], file_name: P) -> io::Result<()> {
+    let formatted_array = format!("[{}]", array.iter().map(|x| x.to_string()).collect::<Vec<_>>().join(", "));
+    fs::write(file_name, formatted_array)
+
 }
 
 fn main() -> Result<()> {
@@ -91,6 +103,8 @@ fn main() -> Result<()> {
 
     let max_folder_path = data_storage_path.join(format!("{}", max_number));
     let seal_path = max_folder_path.join("seal.bin");
+    let prices_path = max_folder_path.join("prices.txt");
+    let timestamps_path = max_folder_path.join("timestamps.txt");
     let journal_path = max_folder_path.join("journal.bin");
     let json_path = max_folder_path.join("prover_input.json");
 
@@ -145,6 +159,12 @@ fn main() -> Result<()> {
         println!("pair {}. name: {}, price: {}, timestamp:{}", i, pair_names[i], prices[i], timestamps[i]);
     }
 
+    write_array_to_file(&prices, prices_path)?;
+    write_array_to_file(&timestamps, timestamps_path)?;
+
+    if args.do_not_publish {
+        return Ok(());
+    }
 
     // Construct function call: Using the IDataFeedFeeder interface, the application constructs
     // the ABI-encoded function call for the set function of the DataFeedFeeder contract.
