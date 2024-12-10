@@ -81,3 +81,15 @@ def rpc_url(net):
             return "--rpc-url=https://devnet.neonevm.org"
         case network_enum.ETH_MAINNET:
             return "--rpc-url=https://eth-mainnet.g.alchemy.com/v2/" + alchemy_api_key
+
+def remove_secrets_and_print(command):
+    command_printable = []
+    secrets_variables = ['ETH_WALLET_PRIVATE_KEY']
+    secrets = []
+    for s in secrets_variables:
+        secrets.append(os.getenv(s))
+
+    for i in range(len(command)):
+        for j in range(len(secrets)):
+            command[i].replace(secrets[j], "$" + secrets_variables[j])
+    print(command_printable)

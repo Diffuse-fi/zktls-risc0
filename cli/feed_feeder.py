@@ -14,9 +14,11 @@ def find_latest_data():
     return latest_data
 
 
-def feed_data(net):
+def feed_data(net, trace):
+    if trace == True:
+        feed_data_legacy(net, True)
     if net == network_enum.NEON_DEVNET:
-        feed_data_legacy(net)
+        feed_data_legacy(net, False)
     else:
         feed_data_publisher(net)
 
@@ -34,7 +36,7 @@ def feed_data_publisher(net):
     run_subprocess(command, "DataFeeder feeding")
 
 
-def feed_data_legacy(net):
+def feed_data_legacy(net, trace):
     latest_data_dir = "data/" + str(find_latest_data()) + "/"
 
     with open(latest_data_dir + "prices.txt") as prices_file:
@@ -64,14 +66,34 @@ def feed_data_legacy(net):
         hex_seal
     ]
 
-    run_subprocess(command, "DataFeeder feeding")
+    contract_bytecode_command = [
+        "cast",
+        "rpc",
+        "eth_getCode",
+        get_feeder_address(net.value),
+        "latest",
+        rpc_url(net)
+    ]
+    contract_bytecode = run_subprocess(contract_bytecode_command, "request contract bytecode")
+    print("feeder contract bytecode:", contract_bytecode)
+
+    if trace == True:
+        command[1] = "call"
+        command.append("--trace")
+        remove_secrets_and_print(command)
+        result = subprocess.run(command)
+        print(result.stdout)
+    else:
+        remove_secrets_and_print(command)
+        run_subprocess(command, "DataFeeder feeding")
 
 def main():
     parser = argparse.ArgumentParser(description="Data feeder parameters")
     parser.add_argument('-n', '--network', type=parse_network, required=True, help="Choose network (local, sepolia, eth_mainnet, neon_devnet)")
+    parser.add_argument('--trace', action='store_true', default=False, help="Print trace level logs using 'cast call --trace'")
     args = parser.parse_args()
 
-    feed_data(args.network)
+    feed_data(args.network, args.trace)
 
 if __name__ == "__main__":
     main()

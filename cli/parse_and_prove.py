@@ -25,8 +25,8 @@ def prepare_json (_binance_flag, test_data_1, test_data_2):
             run_subprocess(["cp", "test_data_1/0/" + f, new_data_dir + f], "copy" + " test_data_1/0/" + f + " to" + new_data_dir + f)
 
     elif test_data_2 == True:
-        for f in files:
-            run_subprocess(["cp", "test_data_2/0/" + f, new_data_dir + f], "copy" + " test_data_2/0/" + f + " to " + new_data_dir + f)
+        f = "prover_input.json"
+        run_subprocess(["cp", "test_data_2/0/" + f, new_data_dir + f], "copy" + " test_data_2/0/" + f + " to " + new_data_dir + f)
 
     elif _binance_flag == True:
         run_subprocess(["python3", "data-provider/script.py"], "request from binance")
@@ -59,8 +59,8 @@ def main():
 
     data_source_group = parser.add_mutually_exclusive_group()
     data_source_group.add_argument('--binance', action='store_true', help='Request data from binance and feed')
-    data_source_group.add_argument('--test-data-1', action='store_true', help='Take dataset from test_data_1/')
-    data_source_group.add_argument('--test-data-2', action='store_true', help='Take dataset from test_data_2')
+    data_source_group.add_argument('--test-data-1', action='store_true', help='Test set 1: input+proof (no proving needed)')
+    data_source_group.add_argument('--test-data-2', action='store_true', help='Test set 2: input only (test proving)')
 
     args = parser.parse_args()
 
