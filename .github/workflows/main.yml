@@ -93,7 +93,7 @@ jobs:
         run: forge test -vvv
 
       - name: Launch anvil
-        run: anvil && sleep 120
+        run: nohup anvil && sleep 20
 
       - name: Debug
         run: cast balance 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266 --rpc-url http://127.0.0.1:8545
