@@ -60,12 +60,16 @@ def do_request(pair, net, req):
     print("===================================")
 
 
-parser = argparse.ArgumentParser(description="Storage request parameters")
-parser.add_argument('-n', '--network', type=parse_network, required=True, help="Choose network (local, sepolia, eth_mainnet)")
-parser.add_argument('-p', '--pair', type=parse_pairname, required=True, help="Choose pair (ETHBTC, BTCUSDT, ETHUSDT, ETHUSDC)")
-parser.add_argument('-m', '--method', type=parse_request, required=True,
-    help="Choose request (decimals, description, latestAnswer, latestRound, latestRoundData)")
+def main():
+    parser = argparse.ArgumentParser(description="Storage request parameters")
+    parser.add_argument('-n', '--network', type=parse_network, required=True, help="Choose network (local, sepolia, eth_mainnet)")
+    parser.add_argument('-p', '--pair', type=parse_pairname, required=True, help="Choose pair (ETHBTC, BTCUSDT, ETHUSDT, ETHUSDC)")
+    parser.add_argument('-m', '--method', type=parse_request, required=True,
+        help="Choose request (decimals, description, latestAnswer, latestRound, latestRoundData)")
 
-args = parser.parse_args()
+    args = parser.parse_args()
 
-do_request(args.pair, args.network, args.method)
+    do_request(args.pair, args.network, args.method)
+
+if __name__ == "__main__":
+    main()

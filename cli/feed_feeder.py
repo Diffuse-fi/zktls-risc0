@@ -66,10 +66,12 @@ def feed_data_legacy(net):
 
     run_subprocess(command, "DataFeeder feeding")
 
+def main():
+    parser = argparse.ArgumentParser(description="Data feeder parameters")
+    parser.add_argument('-n', '--network', type=parse_network, required=True, help="Choose network (local, sepolia, eth_mainnet, neon_devnet)")
+    args = parser.parse_args()
 
-parser = argparse.ArgumentParser(description="Data feeder parameters")
-parser.add_argument('-n', '--network', type=parse_network, required=True, help="Choose network (local, sepolia, eth_mainnet, neon_devnet)")
-args = parser.parse_args()
+    feed_data(args.network)
 
-feed_data(args.network)
-
+if __name__ == "__main__":
+    main()

@@ -74,13 +74,17 @@ def request_storage_addresses(net, pair_name):
     print("wrote address to", address_path(net.value, pair_name), "\n======================================")
 
 
-parser = argparse.ArgumentParser(description="Data feeder parameters")
-parser.add_argument('-n', '--network', type=parse_network, required=True, help="Choose network (local, sepolia, eth_mainnet)")
+def main():
+    parser = argparse.ArgumentParser(description="Data feeder parameters")
+    parser.add_argument('-n', '--network', type=parse_network, required=True, help="Choose network (local, sepolia, eth_mainnet, neon_devnet)")
 
-args = parser.parse_args()
+    args = parser.parse_args()
 
 
-deploy_data_feeder(args.network)
+    deploy_data_feeder(args.network)
 
-for p in pair_name_enum:
-    request_storage_addresses(args.network, p.value)
+    for p in pair_name_enum:
+        request_storage_addresses(args.network, p.value)
+
+if __name__ == "__main__":
+    main()
