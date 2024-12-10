@@ -11,10 +11,10 @@ from request_storage import do_request
 from request_storage import method_enum
 from parse_and_prove import prepare_json
 
-
+print("step 1: set env variables...")
 anvil_testnet_private_key = "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
 os.environ["ETH_WALLET_PRIVATE_KEY"] = anvil_testnet_private_key
-
+os.environ["ALCHEMY_API_KEY"] = "placeholder"
 
 print("step 2: deploying datafeed feeder...")
 local_network = network_enum.LOCAL
@@ -51,7 +51,3 @@ print("step 10: request storages...")
 for p in pair_name_enum:
     for m in method_enum:
         do_request(p, local_network, m)
-
-
-print("step 11: terminate anvil")
-process.terminate()
