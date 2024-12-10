@@ -19,11 +19,11 @@ pub mod guest_data_structs;
 
 #[cfg(test)]
 mod tests {
+    use super::guest_data_structs::GuestInputType;
+    use super::guest_data_structs::GuestOutputType;
     use alloy_primitives::U256;
     use alloy_sol_types::SolValue;
     use risc0_zkvm::{default_executor, ExecutorEnv};
-    use super::guest_data_structs::GuestInputType;
-    use super::guest_data_structs::GuestOutputType;
 
     #[test]
     fn proves_even_number() {
@@ -48,12 +48,15 @@ mod tests {
         }"#
         .to_string();
 
-
         let guest_input = GuestInputType {
             json_string: String::from(data_str),
-            currency_pairs: vec![String::from("ETHBTC"), String::from("BTCUSDT"), String::from("ETHUSDT"), String::from("ETHUSDC")],
+            currency_pairs: vec![
+                String::from("ETHBTC"),
+                String::from("BTCUSDT"),
+                String::from("ETHUSDT"),
+                String::from("ETHUSDC"),
+            ],
         };
-
 
         let env = ExecutorEnv::builder()
             .write(&guest_input)
@@ -67,8 +70,8 @@ mod tests {
             Err(e) => panic!("Execution failed with error: {:?}", e),
         };
 
-
-        let res: GuestOutputType = <GuestOutputType>::abi_decode(&session_info.journal.bytes, true).unwrap();
+        let res: GuestOutputType =
+            <GuestOutputType>::abi_decode(&session_info.journal.bytes, true).unwrap();
         assert_eq!("ETHBTC", res[0].0);
         assert_eq!(3548, res[0].1);
         assert_eq!(1730908508815, res[0].2);
@@ -84,14 +87,14 @@ mod tests {
         assert_eq!("ETHUSDC", res[3].0);
         assert_eq!(264176000, res[3].1);
         assert_eq!(1730908508905, res[3].2);
-
     }
 
     #[test]
-    #[should_panic(expected = "called `Result::unwrap()` on an `Err` value: Guest panicked: called `Result::unwrap()` on an `Err` value: DeserializeUnexpectedEnd")]
+    #[should_panic(
+        expected = "called `Result::unwrap()` on an `Err` value: Guest panicked: called `Result::unwrap()` on an `Err` value: DeserializeUnexpectedEnd"
+    )]
     fn rejects_odd_number() {
-        let data_str = r#"Hello, world!"#
-        .to_string();
+        let data_str = r#"Hello, world!"#.to_string();
 
         let env = ExecutorEnv::builder()
             .write(&data_str)
@@ -100,7 +103,8 @@ mod tests {
             .unwrap();
 
         // NOTE: Use the executor to run tests without proving.
-        default_executor().execute(env, super::JSON_PARSER_ELF).unwrap();
-
+        default_executor()
+            .execute(env, super::JSON_PARSER_ELF)
+            .unwrap();
     }
 }

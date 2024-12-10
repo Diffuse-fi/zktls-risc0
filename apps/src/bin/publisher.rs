@@ -24,14 +24,14 @@ use alloy::{
 use alloy_primitives::Address;
 use anyhow::{Context, Result};
 use clap::Parser;
-use methods::JSON_PARSER_ELF;
 use methods::guest_data_structs::{GuestInputType, GuestOutputType};
+use methods::JSON_PARSER_ELF;
 use risc0_ethereum_contracts::encode_seal;
 use risc0_zkvm::{default_prover, ExecutorEnv, ProverOpts, VerifierContext};
-use url::Url;
 use std::fs;
-use std::path::Path;
 use std::io;
+use std::path::Path;
+use url::Url;
 
 // `IDataFeedFeeder` interface automatically generated via the alloy `sol!` macro.
 alloy::sol!(
@@ -66,9 +66,15 @@ struct Args {
 }
 
 fn write_array_to_file<T: ToString, P: AsRef<Path>>(array: &[T], file_name: P) -> io::Result<()> {
-    let formatted_array = format!("[{}]", array.iter().map(|x| x.to_string()).collect::<Vec<_>>().join(", "));
+    let formatted_array = format!(
+        "[{}]",
+        array
+            .iter()
+            .map(|x| x.to_string())
+            .collect::<Vec<_>>()
+            .join(", ")
+    );
     fs::write(file_name, formatted_array)
-
 }
 
 fn main() -> Result<()> {
@@ -82,7 +88,6 @@ fn main() -> Result<()> {
         .with_recommended_fillers()
         .wallet(wallet)
         .on_http(args.rpc_url);
-
 
     let data_storage_path = Path::new("data/");
 
@@ -115,10 +120,18 @@ fn main() -> Result<()> {
 
         let guest_input = GuestInputType {
             json_string: String::from(json_string),
-            currency_pairs: vec![String::from("ETHBTC"), String::from("BTCUSDT"), String::from("ETHUSDT"), String::from("ETHUSDC")],
+            currency_pairs: vec![
+                String::from("ETHBTC"),
+                String::from("BTCUSDT"),
+                String::from("ETHUSDT"),
+                String::from("ETHUSDC"),
+            ],
         };
 
-        let env = ExecutorEnv::builder().write(&guest_input).unwrap().build()?;
+        let env = ExecutorEnv::builder()
+            .write(&guest_input)
+            .unwrap()
+            .build()?;
 
         let receipt = default_prover()
             .prove_with_ctx(
@@ -145,7 +158,8 @@ fn main() -> Result<()> {
     // Decode Journal: Upon receiving the proof, the application decodes the journal to extract
     // the verified numbers. This ensures that the numbers being submitted to the blockchain match
     // the numbers that were verified off-chain.
-    let guest_output: GuestOutputType = <GuestOutputType>::abi_decode(&journal, true).context("decoding journal data")?;
+    let guest_output: GuestOutputType =
+        <GuestOutputType>::abi_decode(&journal, true).context("decoding journal data")?;
 
     const ARRAY_REPEAT_VALUE: std::string::String = String::new();
     let mut pair_names = [ARRAY_REPEAT_VALUE; 4];
@@ -156,7 +170,10 @@ fn main() -> Result<()> {
         pair_names[i] = first;
         prices[i] = second;
         timestamps[i] = third;
-        println!("pair {}. name: {}, price: {}, timestamp:{}", i, pair_names[i], prices[i], timestamps[i]);
+        println!(
+            "pair {}. name: {}, price: {}, timestamp:{}",
+            i, pair_names[i], prices[i], timestamps[i]
+        );
     }
 
     write_array_to_file(&prices, prices_path)?;
