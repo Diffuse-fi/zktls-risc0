@@ -1,7 +1,6 @@
 import subprocess
 import time
 import sys
-import socket
 
 from utils.network import *
 from deploy_feeder import deploy_data_feeder, request_storage_addresses
@@ -13,31 +12,8 @@ from request_storage import method_enum
 from parse_and_prove import prepare_json
 
 
-def is_port_open(host, port):
-    try:
-        with socket.create_connection((host, port), timeout=60):
-            return True
-    except (socket.timeout, ConnectionRefusedError):
-        return False
-
-
 anvil_testnet_private_key = "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
 os.environ["ETH_WALLET_PRIVATE_KEY"] = anvil_testnet_private_key
-
-print("step 1: starting anvil...")
-process = subprocess.Popen(["anvil"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-if process.poll() is None:
-    print("anvil started succesfully")
-else:
-    print("failed to start anvil")
-    sys.exit(process.poll())
-
-
-if is_port_open("localhost", 8545):
-    print("Connection to localhost:8545 succeeded")
-else:
-    print("Connection to localhost:8545 failed")
-    sys.exit(1)
 
 
 print("step 2: deploying datafeed feeder...")
