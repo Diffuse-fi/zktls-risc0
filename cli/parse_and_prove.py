@@ -54,14 +54,17 @@ def prove_data():
 
     run_subprocess(command, "DataFeeder feeding")
 
-parser = argparse.ArgumentParser(description="Data feeder parameters")
+def main():
+    parser = argparse.ArgumentParser(description="Data feeder parameters")
 
-data_source_group = parser.add_mutually_exclusive_group()
-data_source_group.add_argument('--binance', action='store_true', help='Request data from binance and feed')
-data_source_group.add_argument('--test-data-1', action='store_true', help='Take dataset from test_data_1/')
-data_source_group.add_argument('--test-data-2', action='store_true', help='Take dataset from test_data_2')
+    data_source_group = parser.add_mutually_exclusive_group()
+    data_source_group.add_argument('--binance', action='store_true', help='Request data from binance and feed')
+    data_source_group.add_argument('--test-data-1', action='store_true', help='Take dataset from test_data_1/')
+    data_source_group.add_argument('--test-data-2', action='store_true', help='Take dataset from test_data_2')
 
-args = parser.parse_args()
+    args = parser.parse_args()
 
-prepare_json(args.binance, args.test_data_1, args.test_data_2)
+    prepare_json(args.binance, args.test_data_1, args.test_data_2)
 
+if __name__ == "__main__":
+    main()
