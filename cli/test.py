@@ -11,16 +11,10 @@ from request_storage import do_request
 from request_storage import method_enum
 from parse_and_prove import prepare_json
 
+print("step 1: set env variables...")
 anvil_testnet_private_key = "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
 os.environ["ETH_WALLET_PRIVATE_KEY"] = anvil_testnet_private_key
-
-print("step 1: starting anvil...")
-process = subprocess.Popen(["anvil"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-if process.poll() is None:
-    print("anvil started succesfully")
-else:
-    print("failed to start anvil")
-    sys.exit(process.poll())
+os.environ["ALCHEMY_API_KEY"] = "placeholder"
 
 print("step 2: deploying datafeed feeder...")
 local_network = network_enum.LOCAL
@@ -33,31 +27,34 @@ for p in pair_name_enum:
 print("step 4: prepare data for feeder (test set 1)...")
 prepare_json(False, True, False) # --binance, --test-data-1, --test-data-2
 
-print("step 4: feed feeder...")
-feed_data(local_network)
+print("step 5: Print traces of feeding execution...")
+feed_data_legacy(local_network, True)
 
-print("step 5: feed feeder legacy (neon compatible)...")
-feed_data_legacy(local_network)
+print("step 5a: feed feeder legacy (neon compatible)...")
+feed_data_legacy(local_network, False)
+
+print("step 5b: feed feeder publisher...")
+feed_data(local_network, False)
 
 print("step 6: request storages...")
 for p in pair_name_enum:
     for m in method_enum:
         do_request(p, local_network, m)
 
-print("step 7: request and prove binance data...")
-prepare_json(True, False, False) # --binance, --test-data-1, --test-data-2
+# looks like github CI runner is banned on binance, uncomment when running locally
+# print("step 7: request and prove binance data...")
+# prepare_json(True, False, False) # --binance, --test-data-1, --test-data-2
+
+print("step 7: prepare data for feeder (test set 2)...")
+prepare_json(False, False, True) # --binance, --test-data-1, --test-data-2
 
 print("step 8: feed feeder...")
-feed_data(local_network)
+feed_data(local_network, False)
 
 print("step 9: feed feeder legacy (neon compatible)...")
-feed_data_legacy(local_network)
+feed_data_legacy(local_network, False)
 
 print("step 10: request storages...")
 for p in pair_name_enum:
     for m in method_enum:
         do_request(p, local_network, m)
-
-
-print("step 11: terminate anvil")
-process.terminate()
