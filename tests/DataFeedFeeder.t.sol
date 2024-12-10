@@ -52,13 +52,8 @@ contract DataFeedFeederTest is RiscZeroCheats, Test {
     function test_DataFeedStorage_latestRoundData() public {
         DataFeedStorage dataFeedStorage = new DataFeedStorage("asdf", 10);
         dataFeedStorage.setNewRound(11111, 22222);
-        (
-            uint80 roundId,
-            uint256 answer,
-            uint256 startedAt,
-            uint256 updatedAt,
-            uint80 answeredInRound
-        ) = dataFeedStorage.latestRoundData();
+        (uint80 roundId, uint256 answer, uint256 startedAt, uint256 updatedAt, uint80 answeredInRound) =
+            dataFeedStorage.latestRoundData();
 
         assertEq(roundId, 0);
         assertEq(answer, 11111);

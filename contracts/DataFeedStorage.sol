@@ -22,38 +22,41 @@ struct RoundData {
 }
 
 contract DataFeedStorage {
-
     uint8 decimals_amount;
     string description_string;
     RoundData[] public roundDataArray;
     address public owner;
 
-    constructor (string memory _description_string, uint8 _decimals_amount) {
+    constructor(string memory _description_string, uint8 _decimals_amount) {
         description_string = _description_string;
         decimals_amount = _decimals_amount;
         owner = msg.sender;
     }
 
-	function decimals() external view returns (uint8) {
+    function decimals() external view returns (uint8) {
         return decimals_amount;
     }
 
-	function description() external view returns (string memory) {
+    function description() external view returns (string memory) {
         return description_string;
     }
 
-	function latestAnswer() external view returns (uint256) {
+    function latestAnswer() external view returns (uint256) {
         require(roundDataArray.length != 0, "there has been no rounds yet");
         return roundDataArray[roundDataArray.length - 1].answer;
     }
 
-	function latestRound() external view returns (uint256) {
+    function latestRound() external view returns (uint256) {
         require(roundDataArray.length != 0, "there has been no rounds yet");
         uint80 _latest_round = uint80(roundDataArray.length - 1);
         return _latest_round;
     }
 
-	function getRoundData(uint80 _roundId) external view returns (uint80 roundId, uint256 answer, uint256 startedAt, uint256 updatedAt, uint80 answeredInRound) {
+    function getRoundData(uint80 _roundId)
+        external
+        view
+        returns (uint80 roundId, uint256 answer, uint256 startedAt, uint256 updatedAt, uint80 answeredInRound)
+    {
         require(roundDataArray.length != 0, "there has been no rounds yet");
         uint256 _answer = roundDataArray[roundId].answer;
         uint256 _timestamp = roundDataArray[roundId].timestamp;
@@ -62,7 +65,11 @@ contract DataFeedStorage {
         return (_roundId, _answer, _timestamp, _timestamp, latest_round);
     }
 
-	function latestRoundData() external view returns (uint80 roundId, uint256 answer, uint256 startedAt, uint256 updatedAt, uint80 answeredInRound) {
+    function latestRoundData()
+        external
+        view
+        returns (uint80 roundId, uint256 answer, uint256 startedAt, uint256 updatedAt, uint80 answeredInRound)
+    {
         require(roundDataArray.length != 0, "there has been no rounds yet");
         uint80 _latest_round = uint80(roundDataArray.length - 1);
         uint256 _answer = roundDataArray[_latest_round].answer;
