@@ -92,6 +92,24 @@ jobs:
           RISC0_DEV_MODE: false
         run: forge test -vvv
 
+      - name: Launch anvil
+        run: nohup anvil > anvil.log 2>&1 &
+
+      - name: Make sure anvil is running
+        run: |
+          for i in {1..10}; do
+            if curl -s http://localhost:8545/health; then
+              echo "Anvil is running!"
+              exit 0
+            fi
+            echo "Waiting for Anvil to start..."
+            sleep 5
+          done
+          echo "Anvil did not start in time!" && exit 1
+
+      - name: run CLI test
+        run: python3 cli/test.py
+
   lint:
     runs-on: ubuntu-latest
     steps:
