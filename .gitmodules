@@ -9,4 +9,4 @@
 	url = https://github.com/risc0/risc0-ethereum
 [submodule "data-provider"]
 	path = data-provider
-	url = git@github.com:Diffuse-fi/data-provider
+	url = https://github.com/Diffuse-fi/data-provider
