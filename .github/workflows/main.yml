@@ -92,6 +92,12 @@ jobs:
           RISC0_DEV_MODE: false
         run: forge test -vvv
 
+      - name: Launch anvil
+        run: anvil && sleep 120
+
+      - name: Debug
+        run: cast balance 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266 --rpc-url http://127.0.0.1:8545
+
       - name: run CLI test
         run: python3 cli/test.py
 
