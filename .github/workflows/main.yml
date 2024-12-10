@@ -92,6 +92,9 @@ jobs:
           RISC0_DEV_MODE: false
         run: forge test -vvv
 
+      - name: run CLI test
+        run: python3 cli/test.py
+
   lint:
     runs-on: ubuntu-latest
     steps:
