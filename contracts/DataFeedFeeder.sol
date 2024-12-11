@@ -19,7 +19,8 @@ pragma solidity ^0.8.20;
 import {IRiscZeroVerifier} from "risc0/IRiscZeroVerifier.sol";
 import "./DataFeedStorage.sol";
 import "./PairDataStruct.sol";
-import {ImageID} from "./ImageID.sol"; // auto-generated contract after running `cargo build`.
+// import {ImageID} from "./ImageID.sol"; // auto-generated contract after running `cargo build`.
+import {ImageID} from "./ImageID_manually_generated.sol"; // TODO: remove github CI crutch
 
 /// @title A starter application using RISC Zero.
 /// @notice This basic application holds a number, guaranteed to be even.
