@@ -33,7 +33,7 @@ def are_you_sure_not_local(net):
 
 
 def set_deployment_command(net):
-    deployment_command = ["forge", "script", rpc_url(net), chain_id(net), "--broadcast", "script/Deploy.s.sol", "--legacy", "--skip-simulation"]
+    deployment_command = ["forge", "script", rpc_url(net), chain_id(net), "--broadcast", "script/Deploy.s.sol"]
     if net == network_enum.NEON_DEVNET:
         deployment_command.append("--legacy") # disables some new unsupported in NeonEVM features, must use in Neon
         deployment_command.append("--skip-simulation") # parameter skips the on-chain simulation which doesn't work on Neon EVM , must use in Neon
