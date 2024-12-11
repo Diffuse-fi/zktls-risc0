@@ -25,7 +25,7 @@ use alloy_primitives::Address;
 use anyhow::{Context, Result};
 use clap::Parser;
 use methods::JSON_PARSER_ELF;
-use shared_between_host_and_guest::{GuestInputType, GuestOutputType};
+use shared_between_host_and_guest::{GuestInputType, GuestOutputType, PAIRS_AMOUNT};
 use risc0_ethereum_contracts::encode_seal;
 use risc0_zkvm::{default_prover, ExecutorEnv, ProverOpts, VerifierContext};
 use url::Url;
@@ -114,9 +114,16 @@ fn main() -> Result<()> {
     if !already_proven {
         let json_bytes = fs::read(json_path).expect("Unable to read file");
 
+        // hardcoded pairs
         let guest_input = GuestInputType {
             json_bytes,
-            currency_pairs: vec![String::from("ETHBTC"), String::from("BTCUSDT"), String::from("ETHUSDT"), String::from("ETHUSDC")],
+            currency_pairs: [
+                String::from("ETHBTC"),
+                String::from("BTCUSDT"),
+                String::from("ETHUSDT"),
+                String::from("ETHUSDC"),
+                String::from("SOLUSDT")
+            ],
         };
 
         let env = ExecutorEnv::builder().write(&guest_input).unwrap().build()?;
@@ -149,9 +156,9 @@ fn main() -> Result<()> {
     let guest_output: GuestOutputType = <GuestOutputType>::abi_decode(&journal, true).context("decoding journal data")?;
 
     const ARRAY_REPEAT_VALUE: std::string::String = String::new();
-    let mut pair_names = [ARRAY_REPEAT_VALUE; 4];
-    let mut prices = [0u64; 4];
-    let mut timestamps = [0u64; 4];
+    let mut pair_names = [ARRAY_REPEAT_VALUE; PAIRS_AMOUNT];
+    let mut prices = [0u64; PAIRS_AMOUNT];
+    let mut timestamps = [0u64; PAIRS_AMOUNT];
 
     for (i, (first, second, third)) in guest_output.extracted_data.into_iter().enumerate() {
         pair_names[i] = first;

@@ -17,8 +17,10 @@ use anyhow::{Context, Result};
 
 use serde::{Serialize, Deserialize};
 
+// hardcoded pairs
+pub const PAIRS_AMOUNT: usize = 5;
 pub type PairDataType = (String, u64, u64);
-pub type ParsedDataType = [PairDataType; 4];
+pub type ParsedDataType = [PairDataType; PAIRS_AMOUNT];
 
 #[derive(Serialize, Deserialize)]
 pub struct GuestOutputStruct {
@@ -46,7 +48,7 @@ impl GuestOutputStruct {
 #[derive(Serialize, Deserialize)]
 pub struct GuestInputStruct {
     pub json_bytes: Vec<u8>,
-    pub currency_pairs: Vec<String>,
+    pub currency_pairs:[String; PAIRS_AMOUNT]
 }
 
 pub type GuestInputType = GuestInputStruct;

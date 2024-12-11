@@ -50,7 +50,7 @@ def do_request(pair, net, req):
     if req == method_enum.LATEST_ROUND_DATA:
         result = result.split("\n")
         print("round number:", result[0])
-        print("answer:", result[1], "(price:", int(result[1].split(" [")[0]) / 100000, ")")
+        print("answer:", result[1], "(price:", int(result[1].split(" [")[0]) / (10**8), ")")
 
         timestamp = int(int(result[2].split(" [")[0]) / 1000)
         readable_date = datetime.fromtimestamp(timestamp).strftime('%Y-%m-%d %H:%M:%S')
