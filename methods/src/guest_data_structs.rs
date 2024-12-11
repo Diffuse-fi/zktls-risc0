@@ -22,4 +22,6 @@ pub struct GuestInputStruct {
 
 pub type GuestInputType = GuestInputStruct;
 
-pub type GuestOutputType = [(String, u64, u64); 4];
+// hardcoded pairs
+pub const PAIRS_AMOUNT: usize = 5;
+pub type GuestOutputType = [(String, u64, u64); PAIRS_AMOUNT];

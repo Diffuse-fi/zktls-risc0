@@ -37,7 +37,7 @@ contract DataFeedFeeder {
 
     bytes32 public constant imageId = ImageID.JSON_PARSER_ID;
     mapping (string => DataFeedStorage) dataFeedStorages;
-    uint constant PAIRS_AMOUNT = 4;
+    uint constant PAIRS_AMOUNT = 5; // hardcoded pairs
 
     /// @notice Initialize the contract, binding it to a specified RISC Zero verifier.
     constructor(IRiscZeroVerifier _verifier, string[PAIRS_AMOUNT] memory /* array size must be fixed in memory */ pair_names) {

@@ -24,5 +24,6 @@ import "./DataFeedStorage.sol";
 ///      or difficult to implement function to a RISC Zero guest running on the zkVM.
 interface IDataFeedFeeder {
     /// @notice Set btc and eth price to store on the contract. Requires a RISC Zero proof that they are extracted from json.
-    function set(string[4] memory pair_names, uint64[4] memory prices, uint64[4] memory timestamps, bytes calldata seal) external;
+    // hardcoded pairs
+    function set(string[5] memory pair_names, uint64[5] memory prices, uint64[5] memory timestamps, bytes calldata seal) external;
 }

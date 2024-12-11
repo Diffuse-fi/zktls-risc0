@@ -50,6 +50,8 @@ fn extract_pair_data<'a>(json_data: &'a JsonValue, pair_name: &'a String) -> (&'
 }
 
 fn main() {
+    // hardcoded pairs
+    const PAIRS_AMOUNT: usize = 5;
 
     // TODO declared identical to methods/src/guest_input_struct.rs because was failing to import for too long
     #[derive(serde::Deserialize)]
@@ -64,8 +66,8 @@ fn main() {
     let json_data = parse(&json_string).unwrap();
 
     let placeholder_str = "".to_string();
-    let mut results: [(&String, u64, u64); 4] = [(&placeholder_str, 0u64, 0u64); 4];
-    for i in 0..4 {
+    let mut results: [(&String, u64, u64); PAIRS_AMOUNT] = [(&placeholder_str, 0u64, 0u64); PAIRS_AMOUNT];
+    for i in 0..PAIRS_AMOUNT {
         results[i] = extract_pair_data(&json_data, &input.currency_pairs[i]);
     }
 

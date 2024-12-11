@@ -26,6 +26,7 @@ mod tests {
     use super::guest_data_structs::GuestOutputType;
 
     #[test]
+    // hardcoded pairs
     fn proves_even_number() {
         let data_str = r#"
         {
@@ -44,14 +45,25 @@ mod tests {
             "ETHUSDC": {
                 "price": 2641.76,
                 "closeTime": 1730908508905
+            },
+            "SOLUSDT": {
+                "price": 229.56,
+                "closeTime": 1733934827
             }
         }"#
         .to_string();
 
 
+        // hardcoded pairs
         let guest_input = GuestInputType {
             json_string: String::from(data_str),
-            currency_pairs: vec![String::from("ETHBTC"), String::from("BTCUSDT"), String::from("ETHUSDT"), String::from("ETHUSDC")],
+            currency_pairs: vec![
+                String::from("ETHBTC"),
+                String::from("BTCUSDT"),
+                String::from("ETHUSDT"),
+                String::from("ETHUSDC"),
+                String::from("SOLUSDT")
+            ],
         };
 
 
@@ -68,6 +80,7 @@ mod tests {
         };
 
 
+        // hardcoded pairs
         let res: GuestOutputType = <GuestOutputType>::abi_decode(&session_info.journal.bytes, true).unwrap();
         assert_eq!("ETHBTC", res[0].0);
         assert_eq!(3548, res[0].1);
@@ -84,6 +97,10 @@ mod tests {
         assert_eq!("ETHUSDC", res[3].0);
         assert_eq!(264176000, res[3].1);
         assert_eq!(1730908508905, res[3].2);
+
+        assert_eq!("SOLUSDT", res[4].0);
+        assert_eq!(22956000, res[4].1);
+        assert_eq!(1733934827, res[4].2);
 
     }
 

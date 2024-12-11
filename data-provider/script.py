@@ -65,7 +65,8 @@ if all_symbols:
 else:
     sys.exit(1)
 
-minimal_interesting_symbols = ['ETHBTC', 'ETHUSDT', 'ETHUSDC', 'BTCUSDT']
+# hardcoded pairs
+minimal_interesting_symbols = ['ETHBTC', 'ETHUSDT', 'ETHUSDC', 'BTCUSDT', 'SOLUSDT']
 
 current_prices = get_current_prices_with_timestamp(minimal_interesting_symbols)
 if current_prices:
