@@ -52,7 +52,7 @@ def prove_data():
         "--do-not-publish"
     ]
 
-    run_subprocess(command, "json data proving")
+    run_subprocess(command, "Proving")
 
 def main():
     parser = argparse.ArgumentParser(description="Data feeder parameters")

@@ -1,18 +1,22 @@
 {
     "ETHBTC": {
-        "price": 0.03548,
-        "closeTime": 1730908508815
+        "price": "0.03899000",
+        "closeTime": 1734010506930
     },
     "BTCUSDT": {
-        "price": 74385.99,
-        "closeTime": 1730908510474
+        "price": "101176.00000000",
+        "closeTime": 1734010506789
     },
     "ETHUSDT": {
-        "price": 2639.83,
-        "closeTime": 1730908509646
+        "price": "3944.27000000",
+        "closeTime": 1734010506906
     },
     "ETHUSDC": {
-        "price": 2641.76,
-        "closeTime": 1730908508905
+        "price": "3946.37000000",
+        "closeTime": 1734010506883
+    },
+    "SOLUSDT": {
+        "price": "230.63000000",
+        "closeTime": 1734010506906
     }
 }

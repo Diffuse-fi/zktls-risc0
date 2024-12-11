@@ -23,7 +23,6 @@ def get_all_symbols():
 def get_current_prices_with_timestamp(symbols):
     endpoint = f"{BASE_URL}/api/v3/ticker/24hr"
     symbols_param = json.dumps(symbols, separators=(',', ':'))
-    # params = {"symbols": '["ETHBTC","ETHUSDT","ETHUSDC","BTCUSDT"]'}
     params = {"symbols": symbols_param, "type": "MINI"}
     print ("Params: ", params)
     response = requests.get(endpoint, params=params)
@@ -40,7 +39,7 @@ def get_current_prices_with_timestamp(symbols):
         # Filter the data for the desired symbols and include the price and timestamp
         stripped_prices = {
             item['symbol']: {
-                "price": float(item['lastPrice']),
+                "price": item['lastPrice'],
                 "closeTime": item['closeTime']
             } for item in data if item['symbol'] in symbols
         }
@@ -67,7 +66,12 @@ if all_symbols:
 else:
     sys.exit(1)
 
-minimal_interesting_symbols = ['ETHBTC', 'ETHUSDT', 'ETHUSDC', 'BTCUSDT']
+minimal_interesting_symbols = []
+
+with open('pairs/list.txt', 'r') as file:
+    for line in file:
+        if line != '\n':
+            minimal_interesting_symbols.append(line.strip())
 
 current_prices = get_current_prices_with_timestamp(minimal_interesting_symbols)
 if current_prices:

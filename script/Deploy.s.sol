@@ -97,11 +97,13 @@ contract DataFeedFeederDeploy is Script, RiscZeroCheats {
         // Deploy the application contract.
 
         // Duct tape, but helps to prototype fast --->
-        string[4] memory pair_names;
+        // hardcoded pairs
+        string[5] memory pair_names;
         pair_names[0] = "ETHBTC";
         pair_names[1] = "BTCUSDT";
         pair_names[2] = "ETHUSDT";
         pair_names[3] = "ETHUSDC";
+        pair_names[4] = "SOLUSDT";
         // <--- Duct tape, but helps to prototype fast
 
         DataFeedFeeder dataFeedFeeder = new DataFeedFeeder(verifier, pair_names);

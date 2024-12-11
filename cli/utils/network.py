@@ -4,11 +4,13 @@ import enum
 import argparse
 import sys
 
+# hardcoded pairs
 class pair_name_enum(enum.Enum):
     ETHBTC = "ETHBTC"
     BTCUSDT = "BTCUSDT"
     ETHUSDT = "ETHUSDT"
     ETHUSDC = "ETHUSDC"
+    SOLUSDT = "SOLUSDT"
 
 def parse_pairname(value):
     try:
