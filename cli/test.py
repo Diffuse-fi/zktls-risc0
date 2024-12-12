@@ -41,12 +41,8 @@ for p in pair_name_enum:
     for m in method_enum:
         do_request(p, local_network, m)
 
-# looks like github CI runner is banned on binance, uncomment when running locally
-# print("step 7: request and prove binance data...")
-# prepare_json(True, False, False) # --binance, --test-data-1, --test-data-2
-
-print("step 7: prepare data for feeder (test set 2)...")
-prepare_json(False, False, True) # --binance, --test-data-1, --test-data-2
+print("step 7: request and prove binance data...")
+prepare_json(True, False, False) # --binance, --test-data-1, --test-data-2
 
 print("step 8: feed feeder...")
 feed_data(local_network, False)
