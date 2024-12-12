@@ -48,9 +48,24 @@ def feed_data_legacy(net, trace):
     with open(latest_data_dir + "seal.bin", "rb") as file:
         bin_seal = file.read()
         hex_seal = '0x' + bin_seal.hex()
-    pairs = """["ETHBTC", "BTCUSDT", "ETHUSDT", "ETHUSDC"]"""
 
-    method_signature = "set(string[4] memory pair_names,uint64[4] memory prices,uint64[4] memory timestamps,bytes calldata seal)"
+    with open("pairs/amount.txt", "r") as file:
+        pairs_amount = file.read().strip()
+
+    with open("pairs/list.txt", 'r') as file:
+        pairs = "["
+        for line in file:
+            if line != '\n':
+                line = line.strip()
+                line = '"' + line + '", '
+                pairs += line
+        pairs = pairs[:-2]
+        pairs += "]"
+
+        print(pairs)
+
+
+    method_signature = "set(string[" + pairs_amount + "] memory pair_names,uint64[" + pairs_amount + "] memory prices,uint64[" + pairs_amount + "] memory timestamps,bytes calldata seal)"
 
     command = [
         "cast",

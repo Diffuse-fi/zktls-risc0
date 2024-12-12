@@ -31,24 +31,24 @@ mod tests {
         let data_str = r#"
         {
             "ETHBTC": {
-                "price": 0.03548,
-                "closeTime": 1730908508815
+                "price": "0.03902000",
+                "closeTime": 1734004690790
             },
             "BTCUSDT": {
-                "price": 74385.99,
-                "closeTime": 1730908510474
+                "price": "100255.18000000",
+                "closeTime": 1734004690148
             },
             "ETHUSDT": {
-                "price": 2639.83,
-                "closeTime": 1730908509646
+                "price": "3911.39000000",
+                "closeTime": 1734004690470
             },
             "ETHUSDC": {
-                "price": 2641.76,
-                "closeTime": 1730908508905
+                "price": "3912.56000000",
+                "closeTime": 1734004689069
             },
             "SOLUSDT": {
-                "price": 229.56,
-                "closeTime": 1733934827
+                "price": "229.14000000",
+                "closeTime": 1734004690664
             }
         }"#
         .to_string();
@@ -83,24 +83,24 @@ mod tests {
         // hardcoded pairs
         let res: GuestOutputType = <GuestOutputType>::abi_decode(&session_info.journal.bytes, true).unwrap();
         assert_eq!("ETHBTC", res[0].0);
-        assert_eq!(3548, res[0].1);
-        assert_eq!(1730908508815, res[0].2);
+        assert_eq!(3902000, res[0].1);
+        assert_eq!(1734004690790, res[0].2);
 
         assert_eq!("BTCUSDT", res[1].0);
-        assert_eq!(7438599000, res[1].1);
-        assert_eq!(1730908510474, res[1].2);
+        assert_eq!(10025518000000, res[1].1);
+        assert_eq!(1734004690148, res[1].2);
 
         assert_eq!("ETHUSDT", res[2].0);
-        assert_eq!(263983000, res[2].1);
-        assert_eq!(1730908509646, res[2].2);
+        assert_eq!(391139000000, res[2].1);
+        assert_eq!(1734004690470, res[2].2);
 
         assert_eq!("ETHUSDC", res[3].0);
-        assert_eq!(264176000, res[3].1);
-        assert_eq!(1730908508905, res[3].2);
+        assert_eq!(391256000000, res[3].1);
+        assert_eq!(1734004689069, res[3].2);
 
         assert_eq!("SOLUSDT", res[4].0);
-        assert_eq!(22956000, res[4].1);
-        assert_eq!(1733934827, res[4].2);
+        assert_eq!(22914000000, res[4].1);
+        assert_eq!(1734004690664, res[4].2);
 
     }
 

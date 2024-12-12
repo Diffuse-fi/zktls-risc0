@@ -31,11 +31,12 @@ fn extract_pair_data<'a>(json_data: &'a JsonValue, pair_name: &'a String) -> (&'
     let integer: u64 = integer_and_fractional[0].parse().expect("Failed to parse integer part");
     let fractional: u64 = integer_and_fractional[1].parse().expect("Failed to parse integer part");
 
-    let mut price: u64 = integer * 100000;
+    let mut price: u64 = integer * 100000000;
+    const HARDCODED_DECIMALS: u32 = 8;
     let decimal_points: u32 = integer_and_fractional[1].chars().count().try_into().unwrap();
-    assert!(decimal_points <= 5, "price decimal points <= 5 are hardcoded"); // TODO 5 hardcoded
+    assert!(decimal_points <= HARDCODED_DECIMALS, "price decimal points <= 8 are hardcoded"); // TODO 8 hardcoded
 
-    price += fractional * 10u64.pow(5 - decimal_points);
+    price += fractional * 10u64.pow(HARDCODED_DECIMALS - decimal_points);
 
 
     let timestamp = match json_data[pair_name]["closeTime"].as_u64() {
