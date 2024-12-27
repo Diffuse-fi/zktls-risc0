@@ -3,7 +3,7 @@ import json
 import sys
 
 # Define the Binance API endpoint and symbol
-BASE_URL = "https://api.binance.com"
+BASE_URL = "https://data-api.binance.vision"
 
 # Function to fetch the full list of trading pairs
 def get_all_symbols():
