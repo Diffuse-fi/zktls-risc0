@@ -12,14 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//! Generated crate containing the image ID and ELF binary of the build guest.
 
-#[derive(serde::Serialize)]
+use serde::{Serialize, Deserialize};
+
+#[derive(Serialize, Deserialize)]
 pub struct GuestInputStruct {
     pub json_string: String,
     pub currency_pairs: Vec<String>,
 }
 
-pub type GuestInputType = GuestInputStruct;
+pub type GuestOutputArray = [(String, u64, u64); 4];
 
-pub type GuestOutputType = [(String, u64, u64); 4];
+pub use GuestInputStruct as GuestInputType;
+pub use GuestOutputArray as GuestOutputType;
+

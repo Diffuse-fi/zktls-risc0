@@ -16,3 +16,4 @@ risc0-ethereum-contracts = { workspace = true }
 risc0-zkvm = { workspace = true, features = ["client"] }
 tokio = { version = "1.35", features = ["full"] }
 url = { workspace = true }
+shared_between_host_and_guest = { path = "../methods/shared_between_host_and_guest" }

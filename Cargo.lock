@@ -688,6 +688,7 @@ dependencies = [
  "methods",
  "risc0-ethereum-contracts",
  "risc0-zkvm",
+ "shared_between_host_and_guest",
  "tokio",
  "url",
 ]
@@ -2329,6 +2330,7 @@ dependencies = [
  "risc0-zkvm",
  "serde",
  "serde_derive",
+ "shared_between_host_and_guest",
 ]
 
 [[package]]
@@ -3528,6 +3530,13 @@ checksum = "c28efc5e327c837aa837c59eae585fc250715ef939ac32881bcc11677cd02d46"
 dependencies = [
  "cc",
  "cfg-if",
+]
+
+[[package]]
+name = "shared_between_host_and_guest"
+version = "0.1.0"
+dependencies = [
+ "serde",
 ]
 
 [[package]]
