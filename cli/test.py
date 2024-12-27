@@ -24,25 +24,11 @@ print("step 3: requesting storage addresses...")
 for p in pair_name_enum:
     request_storage_addresses(local_network, p.value)
 
-print("step 4: prepare data for feeder (test set 1)...")
-prepare_json(False, True, False) # --binance, --test-data-1, --test-data-2
-
-print("step 5: Print traces of feeding execution...")
-feed_data_legacy(local_network, True)
-
-print("step 5a: feed feeder legacy (neon compatible)...")
-feed_data_legacy(local_network, False)
-
-print("step 5b: feed feeder publisher...")
-feed_data(local_network, False)
-
-print("step 6: request storages...")
-for p in pair_name_enum:
-    for m in method_enum:
-        do_request(p, local_network, m)
-
 print("step 7: request and prove binance data...")
 prepare_json(True, False, False) # --binance, --test-data-1, --test-data-2
+
+print("step 7.1: Print traces of feeding execution...")
+feed_data_legacy(local_network, True)
 
 print("step 8: feed feeder...")
 feed_data(local_network, False)
