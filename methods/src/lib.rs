@@ -15,15 +15,13 @@
 //! Generated crate containing the image ID and ELF binary of the build guest.
 include!(concat!(env!("OUT_DIR"), "/methods.rs"));
 
-pub mod guest_data_structs;
-
 #[cfg(test)]
 mod tests {
     use alloy_primitives::U256;
     use alloy_sol_types::SolValue;
     use risc0_zkvm::{default_executor, ExecutorEnv};
-    use super::guest_data_structs::GuestInputType;
-    use super::guest_data_structs::GuestOutputType;
+    use shared_between_host_and_guest::GuestInputType;
+    use shared_between_host_and_guest::GuestOutputType;
 
     #[test]
     fn proves_even_number() {

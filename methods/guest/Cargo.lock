@@ -889,6 +889,7 @@ dependencies = [
  "risc0-zkvm",
  "serde",
  "serde_derive",
+ "shared_between_host_and_guest",
 ]
 
 [[package]]
@@ -1681,6 +1682,13 @@ checksum = "a9b57fd861253bff08bb1919e995f90ba8f4889de2726091c8876f3a4e823b40"
 dependencies = [
  "cc",
  "cfg-if",
+]
+
+[[package]]
+name = "shared_between_host_and_guest"
+version = "0.1.0"
+dependencies = [
+ "serde",
 ]
 
 [[package]]

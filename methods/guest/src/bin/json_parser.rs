@@ -16,9 +16,10 @@
 use alloy_sol_types::SolValue;
 use risc0_zkvm::guest::env;
 use json::{parse, JsonValue};
+use shared_between_host_and_guest::{GuestInputType, GuestOutputType};
+use std::array;
 
-fn extract_pair_data<'a>(json_data: &'a JsonValue, pair_name: &'a String) -> (&'a String, u64, u64) {
-
+fn extract_pair_data(json_data: &JsonValue, pair_name: &String) -> (String, u64, u64) {
     let price_str = json_data[pair_name]["price"].to_string();
 
     let integer_and_fractional: Vec<&str> = price_str.split('.').collect();
@@ -29,7 +30,7 @@ fn extract_pair_data<'a>(json_data: &'a JsonValue, pair_name: &'a String) -> (&'
     }
 
     let integer: u64 = integer_and_fractional[0].parse().expect("Failed to parse integer part");
-    let fractional: u64 = integer_and_fractional[1].parse().expect("Failed to parse integer part");
+    let fractional: u64 = integer_and_fractional[1].parse().expect("Failed to parse fractional part");
 
     let mut price: u64 = integer * 100000;
     let decimal_points: u32 = integer_and_fractional[1].chars().count().try_into().unwrap();
@@ -46,29 +47,19 @@ fn extract_pair_data<'a>(json_data: &'a JsonValue, pair_name: &'a String) -> (&'
         }
     };
 
-    (pair_name, price, timestamp)
+    (pair_name.clone(), price, timestamp)
 }
 
 fn main() {
-
-    // TODO declared identical to methods/src/guest_input_struct.rs because was failing to import for too long
-    #[derive(serde::Deserialize)]
-    pub struct GuestInputType {
-        pub json_string: String,
-        pub currency_pairs: Vec<String>,
-    }
 
     // Read the input data for this application.
     let input: GuestInputType = env::read();
     let json_string: String = input.json_string;
     let json_data = parse(&json_string).unwrap();
 
-    let placeholder_str = "".to_string();
-    let mut results: [(&String, u64, u64); 4] = [(&placeholder_str, 0u64, 0u64); 4];
-    for i in 0..4 {
-        results[i] = extract_pair_data(&json_data, &input.currency_pairs[i]);
-    }
-
+    let results: GuestOutputType = array::from_fn(|i| {
+        extract_pair_data(&json_data, &input.currency_pairs[i])
+    });
 
     // Commit the journal that will be received by the application contract.
     // Journal is encoded using Solidity ABI for easy decoding in the app contract.

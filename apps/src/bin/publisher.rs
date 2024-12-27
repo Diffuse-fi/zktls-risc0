@@ -25,7 +25,7 @@ use alloy_primitives::Address;
 use anyhow::{Context, Result};
 use clap::Parser;
 use methods::JSON_PARSER_ELF;
-use methods::guest_data_structs::{GuestInputType, GuestOutputType};
+use shared_between_host_and_guest::{GuestInputType, GuestOutputType};
 use risc0_ethereum_contracts::encode_seal;
 use risc0_zkvm::{default_prover, ExecutorEnv, ProverOpts, VerifierContext};
 use url::Url;

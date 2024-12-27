@@ -16,6 +16,7 @@ risc0-zkvm = { version = "1.1", default-features = false, features = ['std'] }
 json = "0.12"
 serde = { version = "1.0", features = ["derive"] }
 serde_derive = "1.0"
+shared_between_host_and_guest = { path = "../shared_between_host_and_guest" }
 
 
 [profile.release]
