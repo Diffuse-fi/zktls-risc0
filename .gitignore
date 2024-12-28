@@ -14,7 +14,7 @@ cli/addresses/local
 
 # Data from binance
 data/
-stripped_prices.json
+stripped_prices.bin
 response.json
 
 # Dotenv file
@@ -28,4 +28,4 @@ target/
 .idea
 
 # pycache
-cli/utils/__pycache__
+*__pycache__*

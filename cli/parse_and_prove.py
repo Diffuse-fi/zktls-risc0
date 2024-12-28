@@ -18,7 +18,7 @@ def prepare_json (_binance_flag, test_data_1, test_data_2):
     new_data_dir = "data/" + str(find_latest_data() + 1) + "/"
     os.makedirs(new_data_dir)
 
-    files = ["prover_input.json", "seal.bin", "journal.bin", "prices.txt", "timestamps.txt"]
+    files = ["prover_input.bin", "hashed_json.bin", "seal.bin", "journal.bin", "prices.txt", "timestamps.txt"]
 
     if test_data_1 == True:
         for f in files:
@@ -30,7 +30,7 @@ def prepare_json (_binance_flag, test_data_1, test_data_2):
 
     elif _binance_flag == True:
         run_subprocess(["python3", "data-provider/script.py"], "request from binance")
-        run_subprocess(["cp", "stripped_prices.json", new_data_dir + "prover_input.json"], "copy binance data to " + new_data_dir)
+        run_subprocess(["cp", "stripped_prices.bin", new_data_dir + "prover_input.bin"], "copy binance data to " + new_data_dir)
         prove_data()
 
     else:
@@ -52,7 +52,7 @@ def prove_data():
         "--do-not-publish"
     ]
 
-    run_subprocess(command, "DataFeeder feeding")
+    run_subprocess(command, "json data proving")
 
 def main():
     parser = argparse.ArgumentParser(description="Data feeder parameters")

@@ -46,9 +46,11 @@ def get_current_prices_with_timestamp(symbols):
         }
 
         # Write the filtered prices with timestamp to another JSON file
-        with open('stripped_prices.json', 'w') as file:
-            json.dump(stripped_prices, file, indent=4)
-        print("Filtered prices saved to stripped_prices.json")
+        json_bytes = json.dumps(stripped_prices, indent=4).encode('utf-8')
+        with open('stripped_prices.bin', 'wb') as file:
+            file.write(json_bytes)
+
+        print("Filtered prices saved to stripped_prices.bin")
 
         return stripped_prices
     else:

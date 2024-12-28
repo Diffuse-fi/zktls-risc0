@@ -54,6 +54,7 @@ contract DataFeedFeeder {
         string[PAIRS_AMOUNT] memory pair_names,
         uint64[PAIRS_AMOUNT] memory prices,
         uint64[PAIRS_AMOUNT] memory timestamps,
+        bytes memory hashed_json,
         bytes calldata seal
     ) public {
         // Construct the expected journal data. Verify will fail if journal does not match.
@@ -61,7 +62,10 @@ contract DataFeedFeeder {
         for (uint i = 0; i < PAIRS_AMOUNT; i++) {
             pairs_data[i] = PairDataStruct(pair_names[i], prices[i], timestamps[i]);
         }
-        bytes memory journal = abi.encode(pairs_data);
+
+        bytes memory pairs_data_abi = abi.encode(pairs_data);
+        bytes memory journal = abi.encodePacked(pairs_data_abi, hashed_json);
+
         verifier.verify(seal, imageId, sha256(journal));
 
         for (uint i = 0; i < pairs_data.length; i++) {
