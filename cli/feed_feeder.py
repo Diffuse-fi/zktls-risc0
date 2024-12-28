@@ -48,9 +48,15 @@ def feed_data_legacy(net, trace):
     with open(latest_data_dir + "seal.bin", "rb") as file:
         bin_seal = file.read()
         hex_seal = '0x' + bin_seal.hex()
+
+    with open(latest_data_dir + "hashed_json.bin", "rb") as file:
+        bin_hashed_json = file.read()
+        if bin_hashed_json:
+            hex_hashed_json = '0x' + bin_hashed_json.hex()
+
     pairs = """["ETHBTC", "BTCUSDT", "ETHUSDT", "ETHUSDC"]"""
 
-    method_signature = "set(string[4] memory pair_names,uint64[4] memory prices,uint64[4] memory timestamps,bytes calldata seal)"
+    method_signature = "set(string[4] memory pair_names,uint64[4] memory prices,uint64[4] memory timestamps,bytes calldata hashed_json,bytes calldata seal)"
 
     command = [
         "cast",
@@ -63,6 +69,7 @@ def feed_data_legacy(net, trace):
         pairs,
         prices,
         timestamps,
+        hex_hashed_json,
         hex_seal
     ]
 

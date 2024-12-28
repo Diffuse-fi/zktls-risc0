@@ -33,6 +33,13 @@ You can deploy your contracts and run an end-to-end test or demo as follows:
     ```bash
     cargo build
     ```
+    run tests:
+
+    ```bash
+    cargo test
+    forge test
+    python3 cli/test.ry
+    ```
 
 4. Deploy data feeder contract by running:
 
@@ -44,11 +51,11 @@ You can deploy your contracts and run an end-to-end test or demo as follows:
 5. Parse data from binance and create proof:
 
     ```bash
-    python3 cli/feed_feeder.py --binance
+    python3 cli/parse_and_prove.py --binance
     ```
     also you can use already proven test data, it will work faster
     ```bash
-    python3 cli/feed_feeder.py --test-data-1
+    python3 cli/parse_and_prove.py --test-data-1
     ```
 
 5. Deploy data to chain:

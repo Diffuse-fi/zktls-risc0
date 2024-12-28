@@ -24,7 +24,7 @@ mod tests {
     use shared_between_host_and_guest::GuestOutputType;
 
     #[test]
-    fn proves_even_number() {
+    fn proves_valid_json() {
         let data_str = r#"
         {
             "ETHBTC": {
@@ -46,9 +46,10 @@ mod tests {
         }"#
         .to_string();
 
+        let data_bytes   = data_str.as_bytes().to_vec();
 
         let guest_input = GuestInputType {
-            json_string: String::from(data_str),
+            json_bytes: data_bytes,
             currency_pairs: vec![String::from("ETHBTC"), String::from("BTCUSDT"), String::from("ETHUSDT"), String::from("ETHUSDC")],
         };
 
@@ -66,7 +67,8 @@ mod tests {
         };
 
 
-        let res: GuestOutputType = <GuestOutputType>::abi_decode(&session_info.journal.bytes, true).unwrap();
+        let guest_output: GuestOutputType = <GuestOutputType>::abi_decode(&session_info.journal.bytes, true).unwrap();
+        let res = guest_output.extracted_data;
         assert_eq!("ETHBTC", res[0].0);
         assert_eq!(3548, res[0].1);
         assert_eq!(1730908508815, res[0].2);
@@ -87,12 +89,14 @@ mod tests {
 
     #[test]
     #[should_panic(expected = "called `Result::unwrap()` on an `Err` value: Guest panicked: called `Result::unwrap()` on an `Err` value: DeserializeUnexpectedEnd")]
-    fn rejects_odd_number() {
+    fn rejects_invalid_json() {
         let data_str = r#"Hello, world!"#
         .to_string();
 
+        let data_bytes   = data_str.as_bytes().to_vec();
+
         let env = ExecutorEnv::builder()
-            .write(&data_str)
+            .write(&data_bytes)
             .unwrap()
             .build()
             .unwrap();

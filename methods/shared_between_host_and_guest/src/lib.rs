@@ -12,17 +12,42 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use alloy_sol_types::{SolValue, SolType};
+use anyhow::{Context, Result};
 
 use serde::{Serialize, Deserialize};
 
+pub type PairDataType = (String, u64, u64);
+pub type ParsedDataType = [PairDataType; 4];
+
+#[derive(Serialize, Deserialize)]
+pub struct GuestOutputStruct {
+    pub extracted_data: ParsedDataType,
+    pub hashed_json: [u8; 32],
+}
+
+impl GuestOutputStruct {
+    pub fn abi_decode(encoded: &[u8], validate: bool) -> anyhow::Result<Self> {
+        let extracted_data_len = encoded.len() - 32;
+
+        let extracted_data = <ParsedDataType>::abi_decode(&encoded[..extracted_data_len], validate)
+            .context("decoding journal data")?;
+
+        let hashed_json: [u8; 32] = encoded[extracted_data_len..]
+            .try_into()
+            .map_err(|_| anyhow::anyhow!("Failed to decode hashed_json"))?;
+        Ok(GuestOutputStruct {
+            extracted_data,
+            hashed_json,
+        })
+    }
+}
+
 #[derive(Serialize, Deserialize)]
 pub struct GuestInputStruct {
-    pub json_string: String,
+    pub json_bytes: Vec<u8>,
     pub currency_pairs: Vec<String>,
 }
 
-pub type GuestOutputArray = [(String, u64, u64); 4];
-
-pub use GuestInputStruct as GuestInputType;
-pub use GuestOutputArray as GuestOutputType;
-
+pub type GuestInputType = GuestInputStruct;
+pub type GuestOutputType = GuestOutputStruct;

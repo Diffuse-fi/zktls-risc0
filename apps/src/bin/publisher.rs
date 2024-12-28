@@ -106,15 +106,16 @@ fn main() -> Result<()> {
     let prices_path = max_folder_path.join("prices.txt");
     let timestamps_path = max_folder_path.join("timestamps.txt");
     let journal_path = max_folder_path.join("journal.bin");
-    let json_path = max_folder_path.join("prover_input.json");
+    let json_path = max_folder_path.join("prover_input.bin");
+    let hashed_json_path = max_folder_path.join("hashed_json.bin");
 
     let already_proven = seal_path.exists() && journal_path.exists();
 
     if !already_proven {
-        let json_string = fs::read_to_string(json_path).expect("Unable to read file");
+        let json_bytes = fs::read(json_path).expect("Unable to read file");
 
         let guest_input = GuestInputType {
-            json_string: String::from(json_string),
+            json_bytes,
             currency_pairs: vec![String::from("ETHBTC"), String::from("BTCUSDT"), String::from("ETHUSDT"), String::from("ETHUSDC")],
         };
 
@@ -152,15 +153,18 @@ fn main() -> Result<()> {
     let mut prices = [0u64; 4];
     let mut timestamps = [0u64; 4];
 
-    for (i, (first, second, third)) in guest_output.into_iter().enumerate() {
+    for (i, (first, second, third)) in guest_output.extracted_data.into_iter().enumerate() {
         pair_names[i] = first;
         prices[i] = second;
         timestamps[i] = third;
         println!("pair {}. name: {}, price: {}, timestamp:{}", i, pair_names[i], prices[i], timestamps[i]);
     }
 
+    let hashed_json = guest_output.hashed_json;
+
     write_array_to_file(&prices, prices_path)?;
     write_array_to_file(&timestamps, timestamps_path)?;
+    fs::write(hashed_json_path, &hashed_json).expect("Failed to write bytes to file");
 
     if args.do_not_publish {
         return Ok(());
@@ -170,7 +174,7 @@ fn main() -> Result<()> {
     // the ABI-encoded function call for the set function of the DataFeedFeeder contract.
     // This call includes the verified numbers, the post-state digest, and the seal (proof).
     let contract = IDataFeedFeeder::new(args.contract, provider);
-    let call_builder = contract.set(pair_names, prices, timestamps, seal.into());
+    let call_builder = contract.set(pair_names, prices, timestamps, hashed_json.into(), seal.into());
 
     // Initialize the async runtime environment to handle the transaction sending.
     let runtime = tokio::runtime::Runtime::new()?;

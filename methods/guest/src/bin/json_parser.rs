@@ -16,10 +16,13 @@
 use alloy_sol_types::SolValue;
 use risc0_zkvm::guest::env;
 use json::{parse, JsonValue};
-use shared_between_host_and_guest::{GuestInputType, GuestOutputType};
+use shared_between_host_and_guest::{GuestInputType, ParsedDataType, PairDataType};
 use std::array;
+use tiny_keccak::Keccak;
+use tiny_keccak::Hasher;
 
-fn extract_pair_data(json_data: &JsonValue, pair_name: &String) -> (String, u64, u64) {
+
+fn extract_pair_data(json_data: &JsonValue, pair_name: &String) -> PairDataType {
     let price_str = json_data[pair_name]["price"].to_string();
 
     let integer_and_fractional: Vec<&str> = price_str.split('.').collect();
@@ -54,16 +57,30 @@ fn main() {
 
     // Read the input data for this application.
     let input: GuestInputType = env::read();
-    let json_string: String = input.json_string;
+    let json_bytes: Vec<u8> = input.json_bytes;
+    let json_string = String::from_utf8_lossy(&json_bytes);
     let json_data = parse(&json_string).unwrap();
 
-    let results: GuestOutputType = array::from_fn(|i| {
+    let mut hasher = Keccak::v256();
+    hasher.update(&json_bytes);
+    let mut hashed_json = [0u8; 32];
+    hasher.finalize(&mut hashed_json);
+
+
+    let extracted_data: ParsedDataType = array::from_fn(|i| {
         extract_pair_data(&json_data, &input.currency_pairs[i])
     });
 
     // Commit the journal that will be received by the application contract.
     // Journal is encoded using Solidity ABI for easy decoding in the app contract.
 
-    let encoded_journal = results.abi_encode();
+    let mut encoded_journal = Vec::new();
+    encoded_journal.extend_from_slice(&extracted_data.abi_encode());
+    encoded_journal.extend_from_slice(&hashed_json);
+
+
+
+
+    // let encoded_journal = results.abi_encode();
     env::commit_slice(&encoded_journal.as_slice());
 }
