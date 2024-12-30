@@ -28,7 +28,7 @@ interface IDataFeedFeeder {
         string[5] memory pair_names,
         uint64[5] memory prices,
         uint64[5] memory timestamps,
-        bytes memory hashed_json,
+        bytes memory sgx_quote,
         bytes calldata seal
     ) external;
 }

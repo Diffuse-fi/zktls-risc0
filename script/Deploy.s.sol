@@ -23,6 +23,7 @@ import {IRiscZeroVerifier} from "risc0/IRiscZeroVerifier.sol";
 import {RiscZeroGroth16Verifier} from "risc0/groth16/RiscZeroGroth16Verifier.sol";
 import {ControlID} from "risc0/groth16/ControlID.sol";
 
+import {IAutomataDcapAttestationFee} from "contracts/IAutomataDcapAttestationFee.sol";
 import {DataFeedFeeder} from "../contracts/DataFeedFeeder.sol";
 
 /// @notice Deployment script for the RISC Zero starter project.
@@ -41,6 +42,7 @@ contract DataFeedFeederDeploy is Script, RiscZeroCheats {
     string constant CONFIG_FILE = "script/config.toml";
 
     IRiscZeroVerifier verifier;
+    IAutomataDcapAttestationFee sgx_quote_verifier;
 
     function run() external {
         // Read and log the chainID
@@ -106,7 +108,14 @@ contract DataFeedFeederDeploy is Script, RiscZeroCheats {
         pair_names[4] = "SOLUSDT";
         // <--- Duct tape, but helps to prototype fast
 
-        DataFeedFeeder dataFeedFeeder = new DataFeedFeeder(verifier, pair_names);
+        address sgx_quote_verifier_address = 0xE28ea4E574871CA6A4331d6692bd3DD602Fb4f76; // sepolia
+        sgx_quote_verifier = IAutomataDcapAttestationFee(sgx_quote_verifier_address);
+
+        DataFeedFeeder dataFeedFeeder = new DataFeedFeeder(
+            verifier,
+            sgx_quote_verifier,
+            pair_names
+        );
         console2.log("Deployed DataFeedFeeder to", address(dataFeedFeeder));
 
         vm.stopBroadcast();

@@ -107,7 +107,7 @@ fn main() -> Result<()> {
     let timestamps_path = max_folder_path.join("timestamps.txt");
     let journal_path = max_folder_path.join("journal.bin");
     let json_path = max_folder_path.join("prover_input.bin");
-    let hashed_json_path = max_folder_path.join("hashed_json.bin");
+    let sgx_quote_path = max_folder_path.join("sgx_quote.bin");
 
     let already_proven = seal_path.exists() && journal_path.exists();
 
@@ -149,6 +149,7 @@ fn main() -> Result<()> {
 
     let seal = fs::read(seal_path.clone())?;
     let journal = fs::read(journal_path.clone())?;
+    let sgx_quote = fs::read(sgx_quote_path.clone())?;
 
     // Decode Journal: Upon receiving the proof, the application decodes the journal to extract
     // the verified numbers. This ensures that the numbers being submitted to the blockchain match
@@ -167,11 +168,8 @@ fn main() -> Result<()> {
         println!("pair {}. name: {}, price: {}, timestamp:{}", i, pair_names[i], prices[i], timestamps[i]);
     }
 
-    let hashed_json = guest_output.hashed_json;
-
     write_array_to_file(&prices, prices_path)?;
     write_array_to_file(&timestamps, timestamps_path)?;
-    fs::write(hashed_json_path, &hashed_json).expect("Failed to write bytes to file");
 
     if args.do_not_publish {
         return Ok(());
@@ -181,7 +179,7 @@ fn main() -> Result<()> {
     // the ABI-encoded function call for the set function of the DataFeedFeeder contract.
     // This call includes the verified numbers, the post-state digest, and the seal (proof).
     let contract = IDataFeedFeeder::new(args.contract, provider);
-    let call_builder = contract.set(pair_names, prices, timestamps, hashed_json.into(), seal.into());
+    let call_builder = contract.set(pair_names, prices, timestamps, sgx_quote.into(), seal.into());
 
     // Initialize the async runtime environment to handle the transaction sending.
     let runtime = tokio::runtime::Runtime::new()?;

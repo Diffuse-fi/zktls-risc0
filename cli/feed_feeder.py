@@ -49,10 +49,10 @@ def feed_data_legacy(net, trace):
         bin_seal = file.read()
         hex_seal = '0x' + bin_seal.hex()
 
-    with open(latest_data_dir + "hashed_json.bin", "rb") as file:
-        bin_hashed_json = file.read()
-        if bin_hashed_json:
-            hex_hashed_json = '0x' + bin_hashed_json.hex()
+    with open(latest_data_dir + "sgx_quote.bin", "rb") as file:
+        bin_sgx_quote = file.read()
+        if bin_sgx_quote:
+            hex_sgx_quote = '0x' + bin_sgx_quote.hex()
 
     with open("pairs/amount.txt", "r") as file:
         pairs_amount = file.read().strip()
@@ -69,7 +69,7 @@ def feed_data_legacy(net, trace):
 
         print(pairs)
 
-    method_signature = "set(string[" + pairs_amount + "] memory pair_names,uint64[" + pairs_amount + "] memory prices,uint64[" + pairs_amount + "] memory timestamps,bytes calldata hashed_json,bytes calldata seal)"
+    method_signature = "set(string[" + pairs_amount + "] memory pair_names,uint64[" + pairs_amount + "] memory prices,uint64[" + pairs_amount + "] memory timestamps,bytes calldata sgx_quote,bytes calldata seal)"
 
     command = [
         "cast",
@@ -82,7 +82,7 @@ def feed_data_legacy(net, trace):
         pairs,
         prices,
         timestamps,
-        hex_hashed_json,
+        hex_sgx_quote,
         hex_seal
     ]
 

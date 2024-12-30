@@ -25,7 +25,7 @@ for p in pair_name_enum:
     request_storage_addresses(local_network, p.value)
 
 print("step 7: request and prove binance data...")
-prepare_json(True, False, False) # --binance, --test-data-1, --test-data-2
+prepare_json(True, False) # --binance, --test-data
 
 print("step 7.1: Print traces of feeding execution...")
 feed_data_legacy(local_network, True)
