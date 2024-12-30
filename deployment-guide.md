@@ -14,11 +14,13 @@ You can either:
 
 You can deploy your contracts and run an end-to-end test or demo as follows:
 
-1. Start a local testnet with `anvil` by running:
+1. Start a local fork of testnet with `anvil` by running:
 
     ```bash
-    anvil
+    anvil --fork-url https://eth-sepolia.g.alchemy.com/v2/${ALCHEMY_API_KEY:?}
     ```
+
+    This will create local copy of sepolia testnet (not a full copy, will only request needed data, not a 12 TB full archive node). Very convinient since we are going to use automata quote verification ecosystem that consists of 10 contracts. Would be huge pain to deploy them every time for local testing. And also it does not work, I tried, something is wrong with their instructions.
 
     Once anvil is started, keep it running in the terminal, and switch to a new terminal.
 
@@ -38,7 +40,7 @@ You can deploy your contracts and run an end-to-end test or demo as follows:
     ```bash
     cargo test
     forge test
-    python3 cli/test.ry
+    python3 cli/test.py
     ```
 
 4. Deploy data feeder contract by running:
@@ -53,9 +55,9 @@ You can deploy your contracts and run an end-to-end test or demo as follows:
     ```bash
     python3 cli/parse_and_prove.py --binance
     ```
-    also you can use already proven test data, it will work faster
+    also you can use test quote and prove data on machine without sgx
     ```bash
-    python3 cli/parse_and_prove.py --test-data-1
+    python3 cli/parse_and_prove.py --test-data
     ```
 
 5. Deploy data to chain:
@@ -78,7 +80,8 @@ You can deploy your contracts and run an end-to-end test or demo as follows:
 7. Repeat parsing and proving
 
     ```bash
-    python3 cli/feed_feeder.py --binance
+    python3 cli/parse_and_prove.py --binance
+    python3 cli/feed_feeder.py -n local
     ```
 
 8. Price onchain has changed:

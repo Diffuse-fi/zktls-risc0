@@ -14,8 +14,8 @@ cli/addresses/local
 
 # Data from binance
 data/
-stripped_prices.bin
-response.json
+requested_prices.bin
+sgx_quote.bin
 
 # Dotenv file
 .env

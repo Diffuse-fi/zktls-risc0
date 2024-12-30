@@ -14,23 +14,20 @@ def find_latest_data():
     return latest_data
 
 
-def prepare_json (_binance_flag, test_data_1, test_data_2):
+def prepare_json (_binance_flag, test_data_1):
     new_data_dir = "data/" + str(find_latest_data() + 1) + "/"
     os.makedirs(new_data_dir)
 
-    files = ["prover_input.bin", "hashed_json.bin", "seal.bin", "journal.bin", "prices.txt", "timestamps.txt"]
+    files = ["prover_input.bin", "sgx_quote.bin"]
 
     if test_data_1 == True:
         for f in files:
             run_subprocess(["cp", "test_data_1/0/" + f, new_data_dir + f], "copy" + " test_data_1/0/" + f + " to" + new_data_dir + f)
 
-    elif test_data_2 == True:
-        f = "prover_input.json"
-        run_subprocess(["cp", "test_data_2/0/" + f, new_data_dir + f], "copy" + " test_data_2/0/" + f + " to " + new_data_dir + f)
-
     elif _binance_flag == True:
-        run_subprocess(["python3", "data-provider/script.py"], "request from binance")
-        run_subprocess(["cp", "stripped_prices.bin", new_data_dir + "prover_input.bin"], "copy binance data to " + new_data_dir)
+        run_subprocess(["./sgx-scaffold/target/debug/app-template"], "request from binance using sgx")
+        run_subprocess(["cp", "requested_prices.bin", new_data_dir + "prover_input.bin"], "copy requested_prices to " + new_data_dir)
+        run_subprocess(["cp", "sgx_quote.bin", new_data_dir + "sgx_quote.bin"], "copy sgx_quote to " + new_data_dir)
         prove_data()
 
     else:
@@ -58,13 +55,12 @@ def main():
     parser = argparse.ArgumentParser(description="Data feeder parameters")
 
     data_source_group = parser.add_mutually_exclusive_group()
-    data_source_group.add_argument('--binance', action='store_true', help='Request data from binance and feed')
-    data_source_group.add_argument('--test-data-1', action='store_true', help='Test set 1: input+proof (no proving needed)')
-    data_source_group.add_argument('--test-data-2', action='store_true', help='Test set 2: input only (test proving)')
+    data_source_group.add_argument('--binance', action='store_true', help='Request data from binance and prove')
+    data_source_group.add_argument('--test-data', action='store_true', help='Test set 1: prove existing data and sgx quote')
 
     args = parser.parse_args()
 
-    prepare_json(args.binance, args.test_data_1, args.test_data_2)
+    prepare_json(args.binance, args.test_data)
 
 if __name__ == "__main__":
     main()
