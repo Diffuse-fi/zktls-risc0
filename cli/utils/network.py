@@ -36,15 +36,17 @@ def address_path(net_val, contract):
     return 'cli/addresses/' + net_val + '/' + contract + '.txt'
 
 def run_subprocess(_command, what):
+    print(what + "...", end=" ")
+
     result = subprocess.run(_command, capture_output=True, text=True)
 
     exit_code = result.returncode
 
     if (exit_code == 0):
-        print(what, "SUCCEEDED")
+        print("SUCCEEDED")
         return(result.stdout)
     else:
-        print(what, "FAILED!")
+        print("FAILED!")
         print("stdout:", result.stdout)
         print("stderr:", result.stderr)
         sys.exit(1)

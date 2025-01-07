@@ -9,4 +9,13 @@ pragma solidity ^0.8.20;
 
 interface IAutomataDcapAttestationFee {
     function verifyAndAttestOnChain(bytes calldata rawQuote) external payable returns (bool, bytes memory);
+
+    function verifyAndAttestWithZKProof(
+        bytes calldata output,    //journal
+        uint8 zkCoprocessor,      // enum, we use risc0 == 1
+        bytes calldata proofBytes //seal
+    )
+        external
+        payable
+        returns (bool success, bytes memory verifiedOutput);
 }

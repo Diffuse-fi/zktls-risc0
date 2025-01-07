@@ -20,7 +20,9 @@ def feed_data(net, trace):
     if net == network_enum.NEON_DEVNET:
         feed_data_legacy(net, False)
     else:
-        feed_data_publisher(net)
+        feed_data_legacy(net, False)
+        # feed_data_publisher(net) // is deprecated, not needed anymore, will be just legacy feeder for now
+        # should move to python web3 package I think
 
 def feed_data_publisher(net):
     command = [
@@ -35,41 +37,50 @@ def feed_data_publisher(net):
     ]
     run_subprocess(command, "DataFeeder feeding")
 
+def text_array_from_binary_file(filename, isdigit):
+    with open(filename, "rb") as f:
+        data = f.read()
+    text = data.decode("utf-8")
+    text = text.rstrip('\x00')
+    text = text.split('\n')
+
+    if isdigit == True:
+        quotation = ''
+    else:
+        quotation = '"'
+
+    array = "["
+    for line in text:
+        if line != '\n':
+            line = line.strip()
+            line = quotation + line + quotation + ', '
+            array += line
+    array = array[:-2]
+    array += "]"
+    return array
+
 
 def feed_data_legacy(net, trace):
     latest_data_dir = "data/" + str(find_latest_data()) + "/"
 
-    with open(latest_data_dir + "prices.txt") as prices_file:
-        prices = prices_file.read()
+    pairs = text_array_from_binary_file(latest_data_dir + "pairs.bin", False)
+    prices = text_array_from_binary_file(latest_data_dir + "prices.bin", True)
+    timestamps = text_array_from_binary_file(latest_data_dir + "timestamps.bin", True)
 
-    with open(latest_data_dir + "timestamps.txt") as timestamps_file:
-        timestamps = timestamps_file.read()
 
-    with open(latest_data_dir + "seal.bin", "rb") as file:
-        bin_seal = file.read()
-        hex_seal = '0x' + bin_seal.hex()
+    with open(latest_data_dir + "sgx_verification_seal.bin", "rb") as file:
+        bin_sgx_verification_seal = file.read()
+        hex_sgx_verification_seal = '0x' + bin_sgx_verification_seal.hex()
 
-    with open(latest_data_dir + "sgx_quote.bin", "rb") as file:
-        bin_sgx_quote = file.read()
-        if bin_sgx_quote:
-            hex_sgx_quote = '0x' + bin_sgx_quote.hex()
+    with open(latest_data_dir + "sgx_verification_journal.bin", "rb") as file:
+        bin_sgx_verification_journal = file.read()
+        if bin_sgx_verification_journal:
+            hex_sgx_verification_journal = '0x' + bin_sgx_verification_journal.hex()
 
     with open("pairs/amount.txt", "r") as file:
         pairs_amount = file.read().strip()
 
-    with open("pairs/list.txt", 'r') as file:
-        pairs = "["
-        for line in file:
-            if line != '\n':
-                line = line.strip()
-                line = '"' + line + '", '
-                pairs += line
-        pairs = pairs[:-2]
-        pairs += "]"
-
-        print(pairs)
-
-    method_signature = "set(string[" + pairs_amount + "] memory pair_names,uint64[" + pairs_amount + "] memory prices,uint64[" + pairs_amount + "] memory timestamps,bytes calldata sgx_quote,bytes calldata seal)"
+    method_signature = "set(string[" + pairs_amount + "] calldata pair_names,uint256[" + pairs_amount + "] calldata prices,uint256[" + pairs_amount + "] calldata timestamps,bytes calldata sgx_verification_journal,bytes calldata sgx_verification_seal)"
 
     command = [
         "cast",
@@ -82,8 +93,8 @@ def feed_data_legacy(net, trace):
         pairs,
         prices,
         timestamps,
-        hex_sgx_quote,
-        hex_seal
+        hex_sgx_verification_journal,
+        hex_sgx_verification_seal
     ]
 
     contract_bytecode_command = [

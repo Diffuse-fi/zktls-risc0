@@ -112,7 +112,6 @@ contract DataFeedFeederDeploy is Script, RiscZeroCheats {
         sgx_quote_verifier = IAutomataDcapAttestationFee(sgx_quote_verifier_address);
 
         DataFeedFeeder dataFeedFeeder = new DataFeedFeeder(
-            verifier,
             sgx_quote_verifier,
             pair_names
         );

@@ -14,9 +14,12 @@ cli/addresses/local
 
 # Data from binance
 data/
-requested_prices.bin
 sgx_quote.bin
-
+sgx_verification_seal.bin
+sgx_verification_journal.bin
+pairs.bin
+prices.bin
+timestamps.bin
 # Dotenv file
 .env
 

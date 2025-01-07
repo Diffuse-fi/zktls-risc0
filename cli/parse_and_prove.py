@@ -18,38 +18,27 @@ def prepare_json (_binance_flag, test_data_1):
     new_data_dir = "data/" + str(find_latest_data() + 1) + "/"
     os.makedirs(new_data_dir)
 
-    files = ["prover_input.bin", "sgx_quote.bin"]
+    files_1 = ["pairs.bin", "prices.bin", "timestamps.bin", "sgx_quote.bin"]
+    files_2 = ["sgx_verification_journal.bin", "sgx_verification_seal.bin"]
 
     if test_data_1 == True:
-        for f in files:
+        for f in files_1:
             run_subprocess(["cp", "test_data_1/0/" + f, new_data_dir + f], "copy" + " test_data_1/0/" + f + " to" + new_data_dir + f)
 
     elif _binance_flag == True:
-        run_subprocess(["./sgx-scaffold/target/debug/app-template"], "request from binance using sgx")
-        run_subprocess(["cp", "requested_prices.bin", new_data_dir + "prover_input.bin"], "copy requested_prices to " + new_data_dir)
-        run_subprocess(["cp", "sgx_quote.bin", new_data_dir + "sgx_quote.bin"], "copy sgx_quote to " + new_data_dir)
-        prove_data()
+        run_subprocess(["./lib/sgx-scaffold/target/debug/app-template"], "request from binance using sgx")
+        for f in files_1:
+            run_subprocess(["cp", f, new_data_dir + f], "copy requested " + f + " to " + new_data_dir)
+
+        run_subprocess(["./lib/automata-dcap-zkvm-cli/target/release/dcap-bonsai-cli", "prove", "-p", new_data_dir + "sgx_quote.bin"], "prove sgx_quote verification")
+
+        for f in files_2:
+            run_subprocess(["cp", f, new_data_dir + f], "copy requested " + f + " to " + new_data_dir)
 
     else:
         print("expected either --test-data-1 or --test-data-2 or --binance flag")
         sys.exit(1)
 
-
-def prove_data():
-    net = network_enum.SEPOLIA #placeholder, just need to create proof, any network will work
-    command = [
-        "cargo",
-        "run",
-        "--bin",
-        "publisher",
-        "--",
-        chain_id(net),
-        rpc_url(net),
-        "--contract=" + get_feeder_address(net.value),
-        "--do-not-publish"
-    ]
-
-    run_subprocess(command, "Proving")
 
 def main():
     parser = argparse.ArgumentParser(description="Data feeder parameters")

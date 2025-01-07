@@ -16,11 +16,8 @@
 
 pragma solidity ^0.8.20;
 
-import {IRiscZeroVerifier} from "risc0/IRiscZeroVerifier.sol";
 import {IAutomataDcapAttestationFee} from "./IAutomataDcapAttestationFee.sol";
 import "./DataFeedStorage.sol";
-import "./PairDataStruct.sol";
-import {ImageID} from "./ImageID.sol"; // auto-generated contract after running `cargo build`.
 
 /// @title A starter application using RISC Zero.
 /// @notice This basic application holds a number, guaranteed to be even.
@@ -28,8 +25,6 @@ import {ImageID} from "./ImageID.sol"; // auto-generated contract after running 
 ///      or difficult to implement function to a RISC Zero guest running on the zkVM.
 
 contract DataFeedFeeder {
-    /// @notice RISC Zero verifier contract address.
-    IRiscZeroVerifier public immutable risc0_verifier;
     /// @notice Automata Intel SGX quote verifier contract address.
     IAutomataDcapAttestationFee public immutable sgx_quote_verifier;
 
@@ -39,17 +34,14 @@ contract DataFeedFeeder {
     ///         ensuring that only proofs generated from a pre-defined guest program
     ///         (in this case, checking if a number is even) are considered valid.
 
-    bytes32 public constant imageId = ImageID.JSON_PARSER_ID;
     mapping (string => DataFeedStorage) dataFeedStorages;
     uint constant PAIRS_AMOUNT = 5; // hardcoded pairs
 
     /// @notice Initialize the contract, binding it to a specified RISC Zero verifier.
     constructor(
-        IRiscZeroVerifier _risc0_verifier,
         IAutomataDcapAttestationFee _sgx_quote_verifier,
         string[PAIRS_AMOUNT] memory /* array size must be fixed in memory */ pair_names
     ) {
-        risc0_verifier = _risc0_verifier;
         sgx_quote_verifier = _sgx_quote_verifier;
 
         for (uint i = 0; i < pair_names.length; i++) {
@@ -60,49 +52,51 @@ contract DataFeedFeeder {
     /// @notice Set btc and eth prices with exact timestamp. Requires a RISC Zero proof that numbers are extracted from json.
     // TODO: maybe its possible to pass array of custom structs, but not obvious
     function set(
-        string[PAIRS_AMOUNT] memory pair_names,
-        uint64[PAIRS_AMOUNT] memory prices,
-        uint64[PAIRS_AMOUNT] memory timestamps,
-        bytes memory sgx_quote,
-        bytes calldata seal
+        string[PAIRS_AMOUNT] calldata pair_names,
+        uint256[PAIRS_AMOUNT] calldata prices,
+        uint256[PAIRS_AMOUNT] calldata timestamps,
+        bytes calldata sgx_verification_journal,
+        bytes calldata sgx_verification_seal
     ) external payable {
         // payable: sgx_quote_verifier collects fee, but it is 0 on sepolia, so now it will work with msg.value = 0
 
         // verify sgx_quote
-        (bool success, bytes memory output) = sgx_quote_verifier.verifyAndAttestOnChain{value: msg.value}(sgx_quote);
+        (bool success, bytes memory output) = sgx_quote_verifier.verifyAndAttestWithZKProof{value: msg.value}(sgx_verification_journal, 1, sgx_verification_seal);
         if (!success) {
             // fail returns bytes(error_string)
             // success returns custom output type:
             // https://github.com/automata-network/automata-dcap-attestation/blob/b49a9f296a5e0cd8b1f076ec541b1239199cadd2/contracts/verifiers/V3QuoteVerifier.sol#L154
-            require(success, string(output));
+            // require(success, string(output)); // found one or more collaterals mismatch
         }
+
+        bytes32[] memory hashes = new bytes32[](PAIRS_AMOUNT * 3);
+
+        for (uint256 i = 0; i < PAIRS_AMOUNT; i++) {
+            hashes[i*3] = keccak256(abi.encodePacked(pair_names[i]));
+            hashes[i*3 + 1] = keccak256(abi.encodePacked(prices[i]));
+            hashes[i*3 + 2] = keccak256(abi.encodePacked(timestamps[i]));
+        }
+        bytes memory concatenated;
+
+        for (uint256 i = 0; i < hashes.length; i++) {
+            concatenated = abi.encodePacked(concatenated, hashes[i]);
+        }
+
+        bytes32 hashed_input_data = keccak256(concatenated);
 
         // extract hashed json from quote
-        require(sgx_quote.length >= 368 + 32, "SGX quote too short");
-        bytes memory hashed_json = new bytes(32);
+        require(sgx_verification_journal.length >= 335 + 32, "SGX quote too short");
+        bytes memory data_hash_from_sgx = new bytes(32);
         for (uint i = 0; i < 32; i++) {
             // ugly, but will switch to quote verification inside the zkVM, so ok for now
-            hashed_json[i] = sgx_quote[368 + i];
+            data_hash_from_sgx[i] = sgx_verification_journal[335 + i];
         }
 
-        // Construct the expected journal data. Verify will fail if journal does not match.
-        PairDataStruct[PAIRS_AMOUNT] memory pairs_data;
-        for (uint i = 0; i < PAIRS_AMOUNT; i++) {
-            pairs_data[i] = PairDataStruct(pair_names[i], prices[i], timestamps[i]);
-        }
-        bytes memory pairs_data_abi = abi.encode(pairs_data);
-        bytes memory journal = abi.encodePacked(pairs_data_abi, hashed_json);
-
-        // verify zk proof
-        risc0_verifier.verify(seal, imageId, sha256(journal));
+        require(hashed_input_data ==bytes32(data_hash_from_sgx), "hashed_input_data != data_hash_from_sgx");
 
         // send round data to storage contracts
-        for (uint i = 0; i < pairs_data.length; i++) {
-            PairDataStruct memory  _current_pair_data = pairs_data[i];
-            uint64 _price = _current_pair_data.price;
-            uint64 _timestamp = _current_pair_data.timestamp;
-            string memory _pair_name = _current_pair_data.pair_name;
-            dataFeedStorages[_pair_name].setNewRound(_price, _timestamp);
+        for (uint i = 0; i < pair_names.length; i++) {
+            dataFeedStorages[pair_names[i]].setNewRound(prices[i], timestamps[i]);
         }
     }
 

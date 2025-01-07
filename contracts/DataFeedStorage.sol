@@ -55,8 +55,8 @@ contract DataFeedStorage {
 
 	function getRoundData(uint80 _roundId) external view returns (uint80 roundId, uint256 answer, uint256 startedAt, uint256 updatedAt, uint80 answeredInRound) {
         require(roundDataArray.length != 0, "there has been no rounds yet");
-        uint256 _answer = roundDataArray[roundId].answer;
-        uint256 _timestamp = roundDataArray[roundId].timestamp;
+        uint256 _answer = roundDataArray[_roundId].answer;
+        uint256 _timestamp = roundDataArray[_roundId].timestamp;
         uint80 latest_round = uint80(roundDataArray.length - 1);
 
         return (_roundId, _answer, _timestamp, _timestamp, latest_round);
