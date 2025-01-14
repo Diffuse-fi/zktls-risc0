@@ -75,7 +75,7 @@ def request_storage_addresses(net, pair_name):
 
 
 parser = argparse.ArgumentParser(description="Data feeder parameters")
-parser.add_argument('-n', '--network', type=parse_network, required=True, help="Choose network (local, sepolia, eth_mainnet)")
+parser.add_argument('-n', '--network', type=parse_network, required=True, help="Choose network (local, sepolia, eth_mainnet, neon_devnet, asset_testnet)")
 
 args = parser.parse_args()
 

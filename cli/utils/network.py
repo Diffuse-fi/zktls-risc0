@@ -22,6 +22,7 @@ class network_enum(enum.Enum):
     SEPOLIA = "sepolia"
     NEON_DEVNET = "neon_devnet"
     ETH_MAINNET = "eth_mainnet"
+    ASSET_TESTNET = "asset_testnet"
 
 def parse_network(value):
     try:
@@ -67,7 +68,8 @@ def chain_id(net):
             return "--chain-id=245022926"
         case network_enum.ETH_MAINNET:
             return "--chain-id=1"
-
+        case network_enum.ASSET_TESTNET:
+            return "--chain-id=42421"
 
 def rpc_url(net):
     alchemy_api_key = os.getenv('ALCHEMY_API_KEY')
@@ -81,3 +83,5 @@ def rpc_url(net):
             return "--rpc-url=https://devnet.neonevm.org"
         case network_enum.ETH_MAINNET:
             return "--rpc-url=https://eth-mainnet.g.alchemy.com/v2/" + alchemy_api_key
+        case network_enum.ASSET_TESTNET:
+            return "--rpc-url=https://enugu-rpc.assetchain.org/"
