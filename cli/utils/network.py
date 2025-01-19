@@ -23,6 +23,7 @@ class network_enum(enum.Enum):
     NEON_DEVNET = "neon_devnet"
     ETH_MAINNET = "eth_mainnet"
     ASSET_TESTNET = "asset_testnet"
+    ARTHERA_TESTNET = "ARTHERA_TESTNET"
 
 def parse_network(value):
     try:
@@ -70,6 +71,8 @@ def chain_id(net):
             return "--chain-id=1"
         case network_enum.ASSET_TESTNET:
             return "--chain-id=42421"
+        case network_enum.ARTHERA_TESTNET:
+            return "--chain-id=10243"
 
 def rpc_url(net):
     alchemy_api_key = os.getenv('ALCHEMY_API_KEY')
@@ -85,3 +88,5 @@ def rpc_url(net):
             return "--rpc-url=https://eth-mainnet.g.alchemy.com/v2/" + alchemy_api_key
         case network_enum.ASSET_TESTNET:
             return "--rpc-url=https://enugu-rpc.assetchain.org/"
+        case network_enum.ARTHERA_TESTNET:
+            return "--rpc-url=https://rpc-test.arthera.net"
