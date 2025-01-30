@@ -1,12 +1,6 @@
-# RISC Zero Foundry Template
+# zkTLS Prototype Using RISC Zero
 
-> Prove computation with the [RISC Zero zkVM] and verify the results in your Ethereum contract.
-
-This repository implements an example application on Ethereum utilizing RISC Zero as a [coprocessor] to the smart contract application.
-It provides a starting point for building powerful new applications on Ethereum that offload work that is computationally intensive (i.e. gas expensive), or difficult to implement in Solidity (e.g. ed25519 signature verification, or HTML parsing).
-
-<!-- TODO(#100) Integrate support for Steel more directly into this repo -->
-Integrate with [Steel][steel-repo] to execute view calls and simulate transactions on Ethereum. Check out the [ERC-20 counter][erc20-counter] demo to see an example.
+This repository contains our initial experiments on zkTLS implementation using RISC0. The current version of the protocol can be found in [zktls-enclave](https://github.com/Diffuse-fi/zktls-enclave) repository.
 
 ## Overview
 
